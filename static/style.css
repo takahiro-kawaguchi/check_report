@@ -1,0 +1,19 @@
+body {
+    padding-top: 80px;
+}
+
+.unavailable{
+    color: #ccc;
+    text-decoration: line-through;
+}
+
+#canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+#image-container {
+    position: relative;
+    display: inline-block;
+}

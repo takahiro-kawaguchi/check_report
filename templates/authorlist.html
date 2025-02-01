@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<body>
+    <h1>Author List</h1>
+    <ul>
+        {% for a in author_list %}
+            <li><a href="/pdf/{{report_index}}/{{loop.index0}}/0">{{a}}</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

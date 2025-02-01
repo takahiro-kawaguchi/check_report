@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
+    <title>PDF Viewer</title>
+    <style>
+        img {
+            width: 100%;
+            height: auto;
+        }
+        .nav {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav class="fixed-top navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <div class="collapse navbar-collapse" id="navbarNav">
+            
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link" href="/">課題一覧</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ url_for('view_author', report_index=report_index) }}">提出一覧</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if author_index == 0 %}disabled{% endif %}"
+                               href="{% if author_index > 0 %}{{ url_for('view_pdf', pdf_index=0, page_num=0, author_index=author_index-1, report_index=report_index) }}{% else %}#{% endif %}">
+                               前のレポート
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if author_index >= total_authors - 1 %}disabled{% endif %}"
+                               href="{% if author_index < total_authors - 1 %}{{ url_for('view_pdf', page_num=0, author_index=author_index+1, report_index=report_index) }}{% else %}#{% endif %}">
+                               次のレポート
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id= "first-page-link" href="{{ url_for('view_pdf', page_num=0, author_index=author_index, report_index=report_index) }}">最初のページ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="last-page-link" href="{{ url_for('view_pdf', page_num=total_pages-1, author_index=author_index, report_index=report_index) }}">最後のページ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if page_num == 0 %}disabled{% endif %}"
+                            id="prev-page-link"
+                               href="{% if page_num > 0 %}{{ url_for('view_pdf', page_num=page_num-1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">
+                               前のページ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if page_num >= total_pages - 1 %}disabled{% endif %}" 
+                            id="next-page-link" 
+                            href="{% if page_num < total_pages - 1 %}{{ url_for('view_pdf', page_num=page_num+1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">
+                               次のページ
+                            </a>
+                        </li>
+                    </ul>
+                    </div>
+                </div>
+        </nav>
+    </header>
+    <main class="container">
+        <div class="row">
+            <div class="col-8">
+
+                <div id="image-container" width="100%" height="auto">
+                    <canvas id="canvas"></canvas>
+                    <img src="/{{ image_path }}" alt="PDF Page" id="pdf-image">
+                </div>
+            </div>
+            <div class="col-4">
+                <h2>Author: {{ author }}</h2>
+                <h4>Page: {{ page_num + 1 }} / {{ total_pages }}</h4>
+                <p>現在の問題: <span id="current-question">＃</span></p>
+                <div>
+                    <button id="btn-circle" class="btn btn-primary" onclick="setMark('circle')">〇</button>
+                    <button id="btn-cross" class="btn btn-secondary" onclick="setMark('cross')">✕</button>
+                    <button id="btn-triangle" class="btn btn-secondary" onclick="setMark('triangle')">△</button>
+                    <button id="btn-erace" class="btn btn-secondary" onclick="setMark('erace')">消去</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src={{url_for('static', filename='viewer.js')}}></script>
+    <script>
+        let currentQuestion = {{question}};
+
+        currentPage = {{page_num}};
+
+        canvas.addEventListener('click', (event) => {
+            clicked_event(event, '{{report}}', '{{author}}', {{page_num}});
+        });
+        console.log(canvas);
+
+        loadJson('{{marks | tojson}}');
+        redrawCanvas({{page_num}});
+        updateQuestionNumber(currentQuestion);
+
+    </script>
+
+</body>
+</html>
