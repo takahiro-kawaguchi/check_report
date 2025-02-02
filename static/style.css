@@ -2,6 +2,11 @@ body {
     padding-top: 80px;
 }
 
+img {
+    width: 100%;
+    height: auto;
+}
+
 .unavailable{
     color: #ccc;
     text-decoration: line-through;
@@ -20,6 +25,12 @@ body {
 
 .problems {
     margin-top: 20px;
+    margin-bottom: 20px;
+    border-top-width: 2px;
+    border-top-style: solid;
+    padding-top: 20px;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
 }
 
 .result{
@@ -32,4 +43,17 @@ body {
     display: inline-block;
     width: 100px; 
     margin-left: 20px;
+
+}
+
+ul{
+    list-style-type: none;
+}
+
+.check{
+    margin-left: 10px;
+}
+.check i{
+    font-size: 18px;
+    color: green;
 }

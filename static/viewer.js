@@ -145,6 +145,9 @@ function drawTriangle(x_ratio, y_ratio, size_ratio) {
 }
 
 async function clicked_event(event, report, author, page_num) {
+    if (problemCount === 0) {
+        return;
+    }
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -239,7 +242,7 @@ function removeMark_(index, report, author, page_num) {
     saveMarks(report, author, page_num, marks);
 }
 
-function findNextProblem() {
+function findNextProblem(transition = true) {
     let isAllMarked = true;
     for (let i = currentQuestion; i < problemCount; i++) {
         if (!marks[i]) {
@@ -258,7 +261,7 @@ function findNextProblem() {
         }
     }
 
-    if (isAllMarked) {
+    if (isAllMarked && transition) {
         const resultConfirm = confirm('全ての問題にマークがつけられました。次のレポートに移動しますか？');
         if (resultConfirm) {
             location.replace(nextReportLink.href);

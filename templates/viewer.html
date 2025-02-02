@@ -7,16 +7,6 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
     <title>PDF Viewer</title>
-    <style>
-        img {
-            width: 100%;
-            height: auto;
-        }
-        .nav {
-            text-align: center;
-            margin-top: 20px;
-        }
-    </style>
 </head>
 <body>
 
@@ -75,8 +65,8 @@
                 </div>
             </div>
             <div class="col-4">
-                <h2>{{ author }}</h2>
-                <h3>Page: {{ page_num + 1 }} / {{ total_pages }}</h3>
+                <h2>{{ report }}</h2>
+                <h3>{{ author }}</h3>
                 <div>
                     <button id="btn-circle" class="btn btn-primary" onclick="setMark('circle')">〇</button>
                     <button id="btn-cross" class="btn btn-outline-primary" onclick="setMark('cross')">✕</button>
@@ -93,6 +83,23 @@
                             </li>
                         </ul>
                     {% endfor %}
+                    <p><a href="{{ url_for('edit_problems', report_index=report_index, prevpage=myurl) }}">採点項目編集</a></p>
+                </div>
+                <div class="pages">
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination">
+                            <li class="page-item {% if page_num == 0 %}disabled{% endif %}">
+                                <a class="page-link" href="{% if page_num > 0 %}{{ url_for('view_pdf', page_num=page_num-1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">前</a>
+                            </li>
+                            {% for i in range(total_pages) %}
+                                <li class="page-item {% if page_num == i %}active{% endif %}">
+                                    <a class="page-link" href="{{ url_for('view_pdf', page_num=i, author_index=author_index, report_index=report_index) }}">{{ i+1 }}</a>
+                                </li>
+                            {% endfor %}
+                            <li class="page-item {% if page_num >= total_pages - 1 %}disabled{% endif %}">
+                                <a class="page-link" href="{% if page_num < total_pages - 1 %}{{ url_for('view_pdf', page_num=page_num+1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">次</a>
+                            </li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -119,8 +126,10 @@
         updateMarks();
         redrawCanvas({{page_num}});
         //changeProblem(currentQuestion);
-        window.onload = findNextProblem;
-
+//        window.onload = findNextProblem(false);
+        window.addEventListener('load', findNextProblem(false));
+        window.addEventListener('load', redrawCanvas({{page_num}}));
+        window.addEventListener('load', updateMarks());
     </script>
 
 </body>
