@@ -24,20 +24,23 @@ sorted_dirlist = sorted(dirlist, key=extract_number)
 
 # PDFを画像に変換
 def convert_pdf_to_images(pdf_path_list, savedir, img_name):
-    if os.path.exists( os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page0.png")):
-        n = sum(1 for f in os.listdir(os.path.join(IMAGE_FOLDER, savedir)) if f.startswith(f"{img_name}_page"))
-        return [os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page{i}.png") for i in range(n)]
+    try:
+        if os.path.exists( os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page0.png")):
+            n = sum(1 for f in os.listdir(os.path.join(IMAGE_FOLDER, savedir)) if f.startswith(f"{img_name}_page"))
+            return [os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page{i}.png") for i in range(n)]
 
-    page = 0
-    for pdf_path in pdf_path_list:
-        images = convert_from_path(pdf_path)
-        image_paths = []
-        for img in images:
-            os.makedirs(os.path.join(IMAGE_FOLDER, savedir), exist_ok=True)
-            img_path = os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page{page}.png")
-            page += 1
-            img.save(img_path, "PNG")
-            image_paths.append(img_path)
+        page = 0
+        for pdf_path in pdf_path_list:
+            images = convert_from_path(pdf_path)
+            image_paths = []
+            for img in images:
+                os.makedirs(os.path.join(IMAGE_FOLDER, savedir), exist_ok=True)
+                img_path = os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page{page}.png")
+                page += 1
+                img.save(img_path, "PNG")
+                image_paths.append(img_path)
+    except:
+        image_paths = [os.path.join(IMAGE_FOLDER, "error.png"),]
     return image_paths
 
 def load_marks(report, author):
