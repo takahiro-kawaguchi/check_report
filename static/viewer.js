@@ -2,6 +2,9 @@ let currentMark = 'circle'; // デフォルトマーク
 let marks = [];
 let currentPage = 0;
 const markSize = 0.05;
+const big_ratio = 1;
+let currentQuestion = 0;
+let problemCount = 0;
 // マークを選択
 
 const canvas = document.getElementById("canvas");
@@ -25,57 +28,83 @@ const pageLinks = [
     document.getElementById("last-page-link")
 ]
 
+const nextReportLink = document.getElementById("next-report-link");
+
+const problemLinks = [];
+const markLinks = [];
+
 function setMark(mark) {
     currentMark = mark;
     Object.values(buttons).forEach(btn => {
         btn.classList.remove("btn-primary");
-        btn.classList.add("btn-secondary");
+        btn.classList.add("btn-outline-primary");
     });
 
     // 選択されたボタンを強調
-    buttons[mark].classList.remove("btn-secondary");
+    buttons[mark].classList.remove("btn-outline-primary");
     buttons[mark].classList.add("btn-primary");
 }
 
-const questionDisplay = document.getElementById("current-question");
-
-
-function updateQuestionNumber(question) {
-    pageLinks.forEach(link => {
-        const href = link.getAttribute("href").split("?")[0];
-        link.setAttribute("href", `${href}?question=${question}`);
-    });
-    questionDisplay.textContent = `問${currentQuestion}`;
-}
 
 function redrawCanvas() {
-    const page_num = currentPage;
-    resetCanvasWidth();
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // クリア
-    marks.forEach(mark => {
-        if (!mark) {
-            return;
-        }
-        if (mark.page !== page_num) {
-            return;
-        }
-        console.log(mark); 
-        if (mark.mark === 'circle') {
-            drawCircle(mark.x, mark.y, markSize);
-        } else if (mark.mark === 'cross') {
-            drawCross(mark.x, mark.y, markSize);
-        } else if (mark.mark === 'triangle') {
-            drawTriangle(mark.x, mark.y, markSize);
-        }
+    return new Promise((resolve) => {
+        const page_num = currentPage;
+        resetCanvasWidth();
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // クリア
+        marks.forEach((mark, i) => {
+            if (!mark) {
+                return;
+            }
+            if (mark.page !== page_num) {
+                return;
+            }
+            let markSize_ = markSize;
+            if (i === currentQuestion) {
+                markSize_ = markSize * big_ratio;
+            }
+            if (mark.mark === 'circle') {
+                drawCircle(mark.x, mark.y, markSize_);
+            } else if (mark.mark === 'cross') {
+                drawCross(mark.x, mark.y, markSize_);
+            } else if (mark.mark === 'triangle') {
+                drawTriangle(mark.x, mark.y, markSize_);
+            }
+        });
+
+        setTimeout(() => {
+            resolve();
+        }, 50);
     });
 }
+
+function updateMarks() {
+    return new Promise((resolve) => {
+        marks.forEach((mark, i) => {
+            if (!mark) {
+                markLinks[i].textContent = '';
+                return;
+            }
+            if (mark.mark === 'circle') {
+                markLinks[i].textContent = '○';
+            } else if (mark.mark === 'cross') {
+                markLinks[i].textContent = '×';
+            } else if (mark.mark === 'triangle') {
+                markLinks[i].textContent = '△';
+            }
+        });
+        setTimeout(() => {
+            resolve();
+        }, 10);
+    });
+}
+
 
 // マークの描画関数
 function drawCircle(x_ratio, y_ratio, size_rataio) {
     const rect = canvas.getBoundingClientRect();
     const x = x_ratio * rect.width;
     const y = y_ratio * rect.height;
-    const size = size_rataio * rect.width/2*1.25;
+    const size = size_rataio * rect.width / 2 * 1.25;
     ctx.beginPath();
     ctx.arc(x, y, size, 0, Math.PI * 2);
     // ctx.fillStyle = 'red';
@@ -89,7 +118,7 @@ function drawCross(x_ratio, y_ratio, size_ratio) {
     const rect = canvas.getBoundingClientRect();
     const x = x_ratio * rect.width;
     const y = y_ratio * rect.height;
-    const size = size_ratio * rect.width/2
+    const size = size_ratio * rect.width / 2
     ctx.beginPath();
     ctx.moveTo(x - size, y - size);
     ctx.lineTo(x + size, y + size);
@@ -104,7 +133,7 @@ function drawTriangle(x_ratio, y_ratio, size_ratio) {
     const rect = canvas.getBoundingClientRect();
     x = x_ratio * rect.width;
     y = y_ratio * rect.height;
-    size = size_ratio * rect.width/2
+    size = size_ratio * rect.width / 2
     ctx.beginPath();
     ctx.moveTo(x, y - size);
     ctx.lineTo(x - size, y + size);
@@ -115,7 +144,7 @@ function drawTriangle(x_ratio, y_ratio, size_ratio) {
     ctx.stroke();
 }
 
-function clicked_event(event, report, author, page_num) {
+async function clicked_event(event, report, author, page_num) {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
@@ -123,21 +152,23 @@ function clicked_event(event, report, author, page_num) {
     const y_ratio = y / rect.height;
 
     if (currentMark !== 'erace') {
-        marks[currentQuestion] = {page: page_num, x: x_ratio, y: y_ratio, mark: currentMark };
-        currentQuestion++;
-        updateQuestionNumber(currentQuestion);
-    }else{
+        marks[currentQuestion] = { page: page_num, x: x_ratio, y: y_ratio, mark: currentMark };
+        await redrawCanvas(page_num);
+        await updateMarks();
+        findNextProblem();
+    } else {
         const clickedIndex = marks.findIndex(mark => {
             if (!mark) {
                 return false;
             }
-            return mark.page === page_num && Math.abs(mark.x - x_ratio) < markSize/2 && Math.abs(mark.y - y_ratio) < markSize/2;
+            return mark.page === page_num && Math.abs(mark.x - x_ratio) < markSize / 2 && Math.abs(mark.y - y_ratio) < markSize / 2;
         });
         if (clickedIndex >= 0) {
             marks[clickedIndex] = null;
         }
     }
     redrawCanvas();
+    updateMarks();
     saveMarks(report, author, page_num, marks);
 }
 
@@ -156,17 +187,17 @@ function saveMarks(report, author, page_num, marks) {
     });
 }
 
-function loadJson(jsonMarks){
+function loadJson(jsonMarks) {
     marks_load = JSON.parse(jsonMarks);
     marks_load.forEach((mark, i) => {
         if (!mark) {
             return;
         }
-        marks[i] = {x: mark.x, y: mark.y, mark: mark.mark, page: mark.page};
+        marks[i] = { x: mark.x, y: mark.y, mark: mark.mark, page: mark.page };
     });
 }
 
-function resetCanvasWidth(){
+function resetCanvasWidth() {
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.width = canvas.offsetWidth;
@@ -175,3 +206,64 @@ function resetCanvasWidth(){
 }
 
 window.addEventListener('resize', redrawCanvas);
+
+function changeProblem(problemIndex) {
+    currentQuestion = problemIndex;
+    problemLinks.forEach(btn => {
+        btn.classList.remove("btn-primary");
+        btn.classList.add("btn-outline-primary");
+    });
+
+    // 選択されたボタンを強調
+    problemLinks[problemIndex].classList.remove("btn-outline-primary");
+    problemLinks[problemIndex].classList.add("btn-primary");
+
+    pageLinks.forEach(link => {
+        const href = link.getAttribute("href").split("?")[0];
+        link.setAttribute("href", `${href}?question=${problemIndex}`);
+    });
+    redrawCanvas();
+}
+
+function getProblemLinks(problemCount) {
+    for (let i = 0; i < problemCount; i++) {
+        problemLinks.push(document.getElementById(`problem${i}`));
+        markLinks.push(document.getElementById(`mark${i}`));
+    }
+}
+
+function removeMark_(index, report, author, page_num) {
+    marks[index] = null;
+    redrawCanvas();
+    updateMarks();
+    saveMarks(report, author, page_num, marks);
+}
+
+function findNextProblem() {
+    let isAllMarked = true;
+    for (let i = currentQuestion; i < problemCount; i++) {
+        if (!marks[i]) {
+            isAllMarked = false;
+            changeProblem(i);
+            break;
+        }
+    }
+    if (isAllMarked) {
+        for (let i = 0; i < currentQuestion; i++) {
+            if (!marks[i]) {
+                isAllMarked = false;
+                changeProblem(i);
+                break;
+            }
+        }
+    }
+
+    if (isAllMarked) {
+        const resultConfirm = confirm('全ての問題にマークがつけられました。次のレポートに移動しますか？');
+        if (resultConfirm) {
+            location.replace(nextReportLink.href);
+        } else {
+            changeProblem(0);
+        }
+    }
+}

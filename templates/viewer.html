@@ -35,7 +35,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {% if author_index >= total_authors - 1 %}disabled{% endif %}"
+                            <a class="nav-link {% if author_index >= total_authors - 1 %}disabled{% endif %}" id="next-report-link"
                                href="{% if author_index < total_authors - 1 %}{{ url_for('view_pdf', page_num=0, author_index=author_index+1, report_index=report_index) }}{% else %}#{% endif %}">
                                次のレポート
                             </a>
@@ -75,14 +75,24 @@
                 </div>
             </div>
             <div class="col-4">
-                <h2>Author: {{ author }}</h2>
-                <h4>Page: {{ page_num + 1 }} / {{ total_pages }}</h4>
-                <p>現在の問題: <span id="current-question">＃</span></p>
+                <h2>{{ author }}</h2>
+                <h3>Page: {{ page_num + 1 }} / {{ total_pages }}</h3>
                 <div>
                     <button id="btn-circle" class="btn btn-primary" onclick="setMark('circle')">〇</button>
-                    <button id="btn-cross" class="btn btn-secondary" onclick="setMark('cross')">✕</button>
-                    <button id="btn-triangle" class="btn btn-secondary" onclick="setMark('triangle')">△</button>
-                    <button id="btn-erace" class="btn btn-secondary" onclick="setMark('erace')">消去</button>
+                    <button id="btn-cross" class="btn btn-outline-primary" onclick="setMark('cross')">✕</button>
+                    <button id="btn-triangle" class="btn btn-outline-primary" onclick="setMark('triangle')">△</button>
+                    <button id="btn-erace" class="btn btn-outline-primary" onclick="setMark('erace')">消去</button>
+                </div>
+                <div class="problems">
+                    {% for p in problems %}
+                        <ul>
+                            <li><button class="btn btn-outline-primary" id="problem{{loop.index0}}" onclick="changeProblem({{loop.index0}})">選択</button>
+                                <span class="problem">{{p}}</span>
+                                <span id="mark{{loop.index0}}" class="result">　</span>
+                                <button class="btn btn-danger" onclick="removeMark({{loop.index0}})">削除</button>
+                            </li>
+                        </ul>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -91,18 +101,25 @@
 
     <script src={{url_for('static', filename='viewer.js')}}></script>
     <script>
-        let currentQuestion = {{question}};
+        currentQuestion = {{question}};
+        getProblemLinks({{problems_num}});
 
         currentPage = {{page_num}};
+        problemCount = {{problems_num}};
 
         canvas.addEventListener('click', (event) => {
-            clicked_event(event, '{{report}}', '{{author}}', {{page_num}});
+            clicked_event(event, '{{report}}', '{{author}}', {{page_num}}, {{problems_num}});
         });
-        console.log(canvas);
+
+        removeMark = (index) => {
+            removeMark_(index, '{{report}}', '{{author}}', {{page_num}});
+        }
 
         loadJson('{{marks | tojson}}');
+        updateMarks();
         redrawCanvas({{page_num}});
-        updateQuestionNumber(currentQuestion);
+        //changeProblem(currentQuestion);
+        window.onload = findNextProblem;
 
     </script>
 

@@ -17,3 +17,19 @@ body {
     position: relative;
     display: inline-block;
 }
+
+.problems {
+    margin-top: 20px;
+}
+
+.result{
+    text-align: center;
+    width: 50px;
+    display: inline-block;
+}
+
+.problem{
+    display: inline-block;
+    width: 100px; 
+    margin-left: 20px;
+}

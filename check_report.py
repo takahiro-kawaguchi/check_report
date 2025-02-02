@@ -9,9 +9,9 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 # PDFフォルダのパス
 IMAGE_FOLDER = "static/images"
 SERVER_URL = "http://127.0.0.1:5000"
-basedir = "レポート"
+basedir = "../レポート"
 MARKS_FILE = "marks.json"
-SAVE_DIR = "save"
+SAVE_DIR = "../save"
 
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
 
@@ -49,6 +49,17 @@ def load_marks(report, author):
         return marks
     return []
 
+def load_problem_list(report):
+    path = os.path.join(SAVE_DIR, report+".txt")
+    if os.path.exists(path):
+        with open(path, "r") as f:
+            problems = f.readlines()
+    else:
+        with open(path, "w") as f:
+            f.write("1")
+        problems = load_problem_list(report)
+    return problems
+
 @app.route("/")
 def index():
     return render_template("dirlist.html", dirlist=sorted_dirlist)
@@ -70,6 +81,7 @@ def view_pdf(report_index, author_index, page_num):
     images = convert_pdf_to_images(pdf_path_list, pdf_name)
     marks = load_marks(sorted_dirlist[report_index], author)
     print(marks)
+    problems = load_problem_list(sorted_dirlist[report_index])
 
     if page_num >= len(images):
         return "No more pages."
@@ -89,6 +101,8 @@ def view_pdf(report_index, author_index, page_num):
         total_authors=len(author_list),
         marks=marks,
         question=question,
+        problems=problems,
+        problems_num=len(problems)
     )
 
     # pdfs = get_pdf_list()
@@ -110,6 +124,7 @@ def view_pdf(report_index, author_index, page_num):
     #     total_pages=len(images),
     #     total_pdfs=len(pdfs),
     # )
+    
 
 @app.route("/save_marks", methods=["POST"])
 def save_marks():
