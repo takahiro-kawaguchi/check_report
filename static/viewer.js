@@ -5,6 +5,8 @@ const markSize = 0.05;
 const big_ratio = 1;
 let currentQuestion = 0;
 let problemCount = 0;
+let auto_next = true;
+let auto_next_check = true;
 // マークを選択
 
 const canvas = document.getElementById("canvas");
@@ -27,6 +29,9 @@ const pageLinks = [
     document.getElementById("first-page-link"),
     document.getElementById("last-page-link")
 ]
+
+const pageNav = document.querySelectorAll(".page-nav"); // すべてのページリンクを取得
+
 
 const nextReportLink = document.getElementById("next-report-link");
 
@@ -100,11 +105,11 @@ function updateMarks() {
 
 
 // マークの描画関数
-function drawCircle(x_ratio, y_ratio, size_rataio) {
+function drawCircle(x_ratio, y_ratio, size_ratio) {
     const rect = canvas.getBoundingClientRect();
     const x = x_ratio * rect.width;
     const y = y_ratio * rect.height;
-    const size = size_rataio * rect.width / 2 * 1.25;
+    const size = size_ratio * rect.width / 2 * 1.25;
     ctx.beginPath();
     ctx.arc(x, y, size, 0, Math.PI * 2);
     // ctx.fillStyle = 'red';
@@ -118,7 +123,7 @@ function drawCross(x_ratio, y_ratio, size_ratio) {
     const rect = canvas.getBoundingClientRect();
     const x = x_ratio * rect.width;
     const y = y_ratio * rect.height;
-    const size = size_ratio * rect.width / 2
+    const size = size_ratio * rect.width / 2;
     ctx.beginPath();
     ctx.moveTo(x - size, y - size);
     ctx.lineTo(x + size, y + size);
@@ -131,9 +136,9 @@ function drawCross(x_ratio, y_ratio, size_ratio) {
 
 function drawTriangle(x_ratio, y_ratio, size_ratio) {
     const rect = canvas.getBoundingClientRect();
-    x = x_ratio * rect.width;
-    y = y_ratio * rect.height;
-    size = size_ratio * rect.width / 2
+    const x = x_ratio * rect.width;
+    const y = y_ratio * rect.height;
+    const size = size_ratio * rect.width / 2
     ctx.beginPath();
     ctx.moveTo(x, y - size);
     ctx.lineTo(x - size, y + size);
@@ -222,8 +227,15 @@ function changeProblem(problemIndex) {
     problemLinks[problemIndex].classList.add("btn-primary");
 
     pageLinks.forEach(link => {
-        const href = link.getAttribute("href").split("?")[0];
-        link.setAttribute("href", `${href}?question=${problemIndex}`);
+        // const url = new URL(link.getAttribute("href"));
+        // url.searchParams.set('question', problemIndex);
+        // const href = url.toString();
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'question', problemIndex));
+        //const href = link.getAttribute("href").split("?")[0];
+        //link.setAttribute("href", `${href}?question=${problemIndex}`);
+    });
+    pageNav.forEach(link => {
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'question', problemIndex));
     });
     redrawCanvas();
 }
@@ -261,12 +273,90 @@ function findNextProblem(transition = true) {
         }
     }
 
-    if (isAllMarked && transition) {
+    if (isAllMarked && transition && auto_next) {
+        if (!auto_next_check){
+            const autoNext = document.getElementById("auto-next");
+            auto_next = autoNext.checked;
+            let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
+            const autoNextcheck = document.getElementById("confirm-next");
+            auto_next_check = autoNextcheck.checked;
+            nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
+            location.replace(nexturl);
+            return;
+        }
         const resultConfirm = confirm('全ての問題にマークがつけられました。次のレポートに移動しますか？');
         if (resultConfirm) {
-            location.replace(nextReportLink.href);
+            const autoNext = document.getElementById("auto-next");
+            auto_next = autoNext.checked;
+            let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
+            const autoNextcheck = document.getElementById("confirm-next");
+            auto_next_check = autoNextcheck.checked;
+            nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
+            location.replace(nexturl);
         } else {
             changeProblem(0);
         }
     }
+}
+
+function toggleAutoNext(){
+    const autoNext = document.getElementById("auto-next");
+    auto_next = autoNext.checked;
+    pageLinks.forEach(link => {
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'auto_next', auto_next));
+    });
+    pageNav.forEach(link => {
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'auto_next', auto_next));
+    });
+    const nextreport = document.getElementById("next-report-link");
+    nextreport.setAttribute("href", updateQueryParameter(nextreport.getAttribute("href"), 'auto_next', auto_next));
+    const prevreport = document.getElementById("prev-report-link");
+    prevreport.setAttribute("href", updateQueryParameter(prevreport.getAttribute("href"), 'auto_next', auto_next));
+}
+
+function toggleConfirmNext(){
+    const autoNextcheck = document.getElementById("confirm-next");
+    auto_next_check = autoNextcheck.checked;
+    pageLinks.forEach(link => {
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'confirm_next', auto_next_check));
+    });
+    pageNav.forEach(link => {
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'confirm_next', auto_next_check));
+    });
+    const nextreport = document.getElementById("next-report-link");
+    nextreport.setAttribute("href", updateQueryParameter(nextreport.getAttribute("href"), 'confirm_next', auto_next_check));
+    const prevreport = document.getElementById("prev-report-link");
+    prevreport.setAttribute("href", updateQueryParameter(prevreport.getAttribute("href"), 'confirm_next', auto_next_check));
+}
+
+function updateCheckboxes(auto_next_, auto_next_check_){
+    pageLinks.forEach(link => {
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'auto_next', auto_next_));
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'confirm_next', auto_next_check_));
+    });
+    pageNav.forEach(link => {
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'auto_next', auto_next_));
+        link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'confirm_next', auto_next_check_));
+    });
+    const nextreport = document.getElementById("next-report-link");
+    nextreport.setAttribute("href", updateQueryParameter(nextreport.getAttribute("href"), 'auto_next', auto_next_));
+    nextreport.setAttribute("href", updateQueryParameter(nextreport.getAttribute("href"), 'confirm_next', auto_next_check_));
+    const prevreport = document.getElementById("prev-report-link");
+    prevreport.setAttribute("href", updateQueryParameter(prevreport.getAttribute("href"), 'auto_next', auto_next_));
+    prevreport.setAttribute("href", updateQueryParameter(prevreport.getAttribute("href"), 'confirm_next', auto_next_check_));
+    auto_next = auto_next_;
+    auto_next_check = auto_next_check_;
+    const autoNext = document.getElementById("auto-next");
+    autoNext.checked = auto_next;
+    const autoNextcheck = document.getElementById("confirm-next");
+    autoNextcheck.checked = auto_next_check;
+}
+
+function updateQueryParameter(url, param, newValue) {
+    if (url=="#"){
+        return url;
+    }
+    let urlObj = new URL(url, window.location.origin);
+    urlObj.searchParams.set(param, newValue);
+    return urlObj.pathname + "?" + urlObj.searchParams.toString();
 }

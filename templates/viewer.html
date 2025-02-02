@@ -19,8 +19,8 @@
                         <li class="nav-item"><a class="nav-link" href="/">課題一覧</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ url_for('view_author', report_index=report_index) }}">提出一覧</a></li>
                         <li class="nav-item">
-                            <a class="nav-link {% if author_index == 0 %}disabled{% endif %}"
-                               href="{% if author_index > 0 %}{{ url_for('view_pdf', pdf_index=0, page_num=0, author_index=author_index-1, report_index=report_index) }}{% else %}#{% endif %}">
+                            <a class="nav-link {% if author_index == 0 %}disabled{% endif %}" id="prev-report-link"
+                               href="{% if author_index > 0 %}{{ url_for('view_pdf', page_num=0, author_index=author_index-1, report_index=report_index) }}{% else %}#{% endif %}">
                                前のレポート
                             </a>
                         </li>
@@ -65,6 +65,8 @@
                 </div>
             </div>
             <div class="col-4">
+                <input type="checkbox" id="auto-next" class="form-check-input" onclick="toggleAutoNext()"><label class="form-check-label" for="auto-next">自動ページ送り</label>
+                <input type="checkbox" id="confirm-next" class="form-check-input" onclick="toggleConfirmNext()"><label class="form-check-label" for="form-check-input">ページ送り時確認</label>
                 <h2>{{ report }}</h2>
                 <h3>{{ author }}</h3>
                 <div>
@@ -93,7 +95,7 @@
                             </li>
                             {% for i in range(total_pages) %}
                                 <li class="page-item {% if page_num == i %}active{% endif %}">
-                                    <a class="page-link" href="{{ url_for('view_pdf', page_num=i, author_index=author_index, report_index=report_index) }}">{{ i+1 }}</a>
+                                    <a class="page-link page-nav" href="{{ url_for('view_pdf', page_num=i, author_index=author_index, report_index=report_index) }}">{{ i+1 }}</a>
                                 </li>
                             {% endfor %}
                             <li class="page-item {% if page_num >= total_pages - 1 %}disabled{% endif %}">
@@ -130,7 +132,7 @@
         window.addEventListener('load', findNextProblem(false));
         window.addEventListener('load', redrawCanvas({{page_num}}));
         window.addEventListener('load', updateMarks());
-        
+        window.addEventListener('load', updateCheckboxes({{auto_next}}, {{confirm_next}}));
     </script>
 
 </body>

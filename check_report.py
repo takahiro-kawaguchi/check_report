@@ -14,6 +14,7 @@ MARKS_FILE = "marks.json"
 SAVE_DIR = "../save"
 
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
+os.makedirs(SAVE_DIR, exist_ok=True)
 
 def extract_number(filename):
     match = re.search(r'第(\d+)回', filename)
@@ -46,7 +47,6 @@ def convert_pdf_to_images(pdf_path_list, savedir, img_name):
 def load_marks(report, author):
     name = author+".json"
     path = os.path.join(SAVE_DIR, report, name)
-    print(path)
     if os.path.exists(path):
         with open(path, "r") as f:
             marks = json.load(f)
@@ -81,6 +81,8 @@ def view_author(report_index):
 @app.route("/pdf/<int:report_index>/<int:author_index>/<int:page_num>")
 def view_pdf(report_index, author_index, page_num):
     question = request.args.get("question", default=0, type=int)
+    auto_next = request.args.get("auto_next", default="true", type=str)
+    auto_next_check = request.args.get("confirm_next", default="true", type=str)
     author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
     author = author_list[author_index]
     pdfs = os.listdir(os.path.join(basedir, sorted_dirlist[report_index], author))
@@ -88,14 +90,12 @@ def view_pdf(report_index, author_index, page_num):
     pdf_path_list = [os.path.join(basedir, sorted_dirlist[report_index], author, pdf) for pdf in pdfs]
     images = convert_pdf_to_images(pdf_path_list, sorted_dirlist[report_index], img_name)
     marks = load_marks(sorted_dirlist[report_index], author)
-    print(marks)
     problems = load_problem_list(sorted_dirlist[report_index])
     myurl = f"'/pdf/{report_index}/{author_index}/{page_num}?question={question}'"
 
     if page_num >= len(images):
         return "No more pages."
     
-    print("finished")
 
     return render_template(
         "viewer.html",
@@ -112,7 +112,9 @@ def view_pdf(report_index, author_index, page_num):
         question=question,
         problems=problems,
         problems_num=len(problems),
-        myurl=myurl
+        myurl=myurl,
+        auto_next=auto_next,
+        confirm_next=auto_next_check
     )
 
 @app.route("/edit_problems/<int:report_index>")
@@ -142,7 +144,6 @@ def save_marks():
 @app.route("/save_problems", methods=["POST"])
 def save_problems():
     data = request.get_json()
-    print(data)
     report_index = data["report_index"]
     names = data["name"]
     index = data["index"]
@@ -151,7 +152,6 @@ def save_problems():
     path = os.path.join(SAVE_DIR, report+".txt")
     with open(path, "w") as f:
         for n in names:
-            print(n)
             f.write(n+"\n")
     reflesh_saved_data(report, index)
     return {"status": "success"}
@@ -186,4 +186,4 @@ def check_finished_report(report):
     return all(check_finished(report, author, problems_num) for author in author_list)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0')
