@@ -6,12 +6,11 @@ function initialize_problem_list(problems) {
     problems.forEach((problem, index) => {
         problems_index.push(index);
         problem_names.push(problem);
-    }
-    );
-    reflesh_problem_list();
+    });
+    refresh_problem_list();
 }
 
-function reflesh_problem_list() {
+function refresh_problem_list() {
     problem_list.innerHTML = '';
     problem_input.length = 0;
     if (problems_index.length == 0) {
@@ -33,34 +32,34 @@ function reflesh_problem_list() {
         `;
         problem_list.appendChild(problem_item);
         problem_input[i] = document.getElementById(`problem-${i}`);
-        addEventListener('input', () => { problem_names[i] = problem_input[i].value; });
+        problem_input[i].addEventListener('input', () => { problem_names[i] = problem_input[i].value; });
     });
 }
 
 function add_next(index) {
     problems_index.splice(index + 1, 0, -1);
     problem_names.splice(index + 1, 0, '');
-    reflesh_problem_list();
+    refresh_problem_list();
 }
 
 function add_prev(index) {
     problems_index.splice(index, 0, -1);
     problem_names.splice(index, 0, '');
-    reflesh_problem_list();
+    refresh_problem_list();
 }
 
 function move_up(index) {
     if (index > 0) {
         [problems_index[index - 1], problems_index[index]] = [problems_index[index], problems_index[index - 1]];
         [problem_names[index - 1], problem_names[index]] = [problem_names[index], problem_names[index - 1]];
-        reflesh_problem_list();
+        refresh_problem_list();
     }
 }
 function move_down(index) {
     if (index < problems_index.length - 1) {
         [problems_index[index + 1], problems_index[index]] = [problems_index[index], problems_index[index + 1]];
         [problem_names[index + 1], problem_names[index]] = [problem_names[index], problem_names[index + 1]];
-        reflesh_problem_list();
+        refresh_problem_list();
     }
 }
 
@@ -71,7 +70,7 @@ function delete_problem(index) {
     }
     problems_index.splice(index, 1);
     problem_names.splice(index, 1);
-    reflesh_problem_list();
+    refresh_problem_list();
 }
 
 function save_problems(report_index, prevurl="#") {
