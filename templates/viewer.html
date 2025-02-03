@@ -91,7 +91,7 @@
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
                             <li class="page-item {% if page_num == 0 %}disabled{% endif %}">
-                                <a class="page-link" href="{% if page_num > 0 %}{{ url_for('view_pdf', page_num=page_num-1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">前</a>
+                                <a class="page-link page-nav" href="{% if page_num > 0 %}{{ url_for('view_pdf', page_num=page_num-1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">前</a>
                             </li>
                             {% for i in range(total_pages) %}
                                 <li class="page-item {% if page_num == i %}active{% endif %}">
@@ -99,7 +99,7 @@
                                 </li>
                             {% endfor %}
                             <li class="page-item {% if page_num >= total_pages - 1 %}disabled{% endif %}">
-                                <a class="page-link" href="{% if page_num < total_pages - 1 %}{{ url_for('view_pdf', page_num=page_num+1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">次</a>
+                                <a class="page-link page-nav" href="{% if page_num < total_pages - 1 %}{{ url_for('view_pdf', page_num=page_num+1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">次</a>
                             </li>
                     </ul>
                 </div>
