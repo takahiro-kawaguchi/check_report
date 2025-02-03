@@ -31,22 +31,22 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id= "first-page-link" href="{{ url_for('view_pdf', page_num=0, author_index=author_index, report_index=report_index) }}">最初のページ</a>
+                            <a class="nav-link" id= "first-page-link" href="{{ url_for('view_pdf', page_num=0, author_index=author_index, report_index=report_index, rotate=rotate) }}">最初のページ</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" id="last-page-link" href="{{ url_for('view_pdf', page_num=total_pages-1, author_index=author_index, report_index=report_index) }}">最後のページ</a>
+                            <a class="nav-link" id="last-page-link" href="{{ url_for('view_pdf', page_num=total_pages-1, author_index=author_index, report_index=report_index, rotate=rotate) }}">最後のページ</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if page_num == 0 %}disabled{% endif %}"
                             id="prev-page-link"
-                               href="{% if page_num > 0 %}{{ url_for('view_pdf', page_num=page_num-1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">
+                               href="{% if page_num > 0 %}{{ url_for('view_pdf', page_num=page_num-1, author_index=author_index, report_index=report_index, rotate=rotate) }}{% else %}#{% endif %}">
                                前のページ
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {% if page_num >= total_pages - 1 %}disabled{% endif %}" 
                             id="next-page-link" 
-                            href="{% if page_num < total_pages - 1 %}{{ url_for('view_pdf', page_num=page_num+1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">
+                            href="{% if page_num < total_pages - 1 %}{{ url_for('view_pdf', page_num=page_num+1, author_index=author_index, report_index=report_index, rotate=rotate) }}{% else %}#{% endif %}">
                                次のページ
                             </a>
                         </li>
@@ -91,17 +91,21 @@
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
                             <li class="page-item {% if page_num == 0 %}disabled{% endif %}">
-                                <a class="page-link page-nav" href="{% if page_num > 0 %}{{ url_for('view_pdf', page_num=page_num-1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">前</a>
+                                <a class="page-link page-nav" href="{% if page_num > 0 %}{{ url_for('view_pdf', page_num=page_num-1, author_index=author_index, report_index=report_index, rotate=rotate) }}{% else %}#{% endif %}">前</a>
                             </li>
                             {% for i in range(total_pages) %}
                                 <li class="page-item {% if page_num == i %}active{% endif %}">
-                                    <a class="page-link page-nav" href="{{ url_for('view_pdf', page_num=i, author_index=author_index, report_index=report_index) }}">{{ i+1 }}</a>
+                                    <a class="page-link page-nav" href="{{ url_for('view_pdf', page_num=i, author_index=author_index, report_index=report_index, rotate=rotate) }}">{{ i+1 }}</a>
                                 </li>
                             {% endfor %}
                             <li class="page-item {% if page_num >= total_pages - 1 %}disabled{% endif %}">
-                                <a class="page-link page-nav" href="{% if page_num < total_pages - 1 %}{{ url_for('view_pdf', page_num=page_num+1, author_index=author_index, report_index=report_index) }}{% else %}#{% endif %}">次</a>
+                                <a class="page-link page-nav" href="{% if page_num < total_pages - 1 %}{{ url_for('view_pdf', page_num=page_num+1, author_index=author_index, report_index=report_index, rotate=rotate) }}{% else %}#{% endif %}">次</a>
                             </li>
                     </ul>
+                </div>
+                <div>
+                    <button class="btn btn-secondary" onclick="rotate_image(1)">左へ回転</button>　<button class="btn btn-secondary" onclick="rotate_image(3)">右へ回転</button>
+
                 </div>
             </div>
         </div>
@@ -112,6 +116,7 @@
     <script>
         currentQuestion = {{question}};
         getProblemLinks({{problems_num}});
+        rotate = {{rotate}};
 
         currentPage = {{page_num}};
         problemCount = {{problems_num}};
@@ -130,9 +135,9 @@
         //changeProblem(currentQuestion);
 //        window.onload = findNextProblem(false);
         window.addEventListener('load', findNextProblem(false));
-        window.addEventListener('load', redrawCanvas({{page_num}}));
         window.addEventListener('load', updateMarks());
         window.addEventListener('load', updateCheckboxes({{auto_next}}, {{confirm_next}}));
+        window.addEventListener('load', redrawCanvas({{page_num}}));
     </script>
 
 </body>

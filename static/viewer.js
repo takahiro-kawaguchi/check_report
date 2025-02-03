@@ -7,11 +7,14 @@ let currentQuestion = 0;
 let problemCount = 0;
 let auto_next = true;
 let auto_next_check = true;
+let rotate = 0;
 // マークを選択
 
 const canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
 const img = document.getElementById("pdf-image");
+
+img.addEventListener('load', redrawCanvas);
 
 canvas.width = img.width;
 canvas.height = img.height;
@@ -63,16 +66,32 @@ function redrawCanvas() {
             if (mark.page !== page_num) {
                 return;
             }
+            let x = mark.x;
+            let y = mark.y;
+            if (rotate == 1){
+                const x_ = y;
+                y = 1-x;
+                x = x_;
+            }
+            if (rotate == 2){
+                x = 1-x;
+                y = 1-y;
+            }
+            if (rotate == 3){
+                const x_ = 1-y;
+                y = x;
+                x = x_;
+            }
             let markSize_ = markSize;
             if (i === currentQuestion) {
                 markSize_ = markSize * big_ratio;
             }
             if (mark.mark === 'circle') {
-                drawCircle(mark.x, mark.y, markSize_);
+                drawCircle(x, y, markSize_);
             } else if (mark.mark === 'cross') {
-                drawCross(mark.x, mark.y, markSize_);
+                drawCross(x, y, markSize_);
             } else if (mark.mark === 'triangle') {
-                drawTriangle(mark.x, mark.y, markSize_);
+                drawTriangle(x, y, markSize_);
             }
         });
 
@@ -156,8 +175,22 @@ async function clicked_event(event, report, author, page_num) {
     const rect = canvas.getBoundingClientRect();
     const x = event.clientX - rect.left;
     const y = event.clientY - rect.top;
-    const x_ratio = x / rect.width;
-    const y_ratio = y / rect.height;
+    let x_ratio = x / rect.width;
+    let y_ratio = y / rect.height;
+    if (rotate == 1){
+        const x_ = 1-y_ratio;
+        y_ratio = x_ratio;
+        x_ratio = x_;
+    }
+    if (rotate == 2){
+        x_ratio = 1-x_ratio;
+        y_ratio = 1-y_ratio;
+    }
+    if (rotate == 3){
+        const x_ = y_ratio;
+        y_ratio = 1-x_ratio;
+        x_ratio = x_;
+    }
 
     if (currentMark !== 'erace') {
         marks[currentQuestion] = { page: page_num, x: x_ratio, y: y_ratio, mark: currentMark };
@@ -360,3 +393,13 @@ function updateQueryParameter(url, param, newValue) {
     urlObj.searchParams.set(param, newValue);
     return urlObj.pathname + "?" + urlObj.searchParams.toString();
 }
+
+function rotate_image(i_rotate){
+    rotate = (rotate + i_rotate) % 4;
+    let url = location.href;
+    url = updateQueryParameter(url, 'rotate', rotate);
+    url = updateQueryParameter(url, 'question', currentQuestion);
+    url = updateQueryParameter(url, 'auto_next', auto_next);
+    url = updateQueryParameter(url, 'confirm_next', auto_next_check);
+    location.replace(url);
+    }

@@ -20,8 +20,6 @@ function reflesh_problem_list() {
             <button class="btn btn-outline-primary" onclick="add_prev(0)">追加</button>
         `;
         problem_list.appendChild(problem_item);
-        problem_input[i] = document.getElementById(`problem-${i}`);
-        addEventListener('input', () => { problem_names[i] = problem_input[i].value; });
     }
     problem_names.forEach((name, i) => {
         const problem_item = document.createElement('li');
@@ -77,7 +75,6 @@ function delete_problem(index) {
 }
 
 function save_problems(report_index, prevurl="#") {
-    console.log(prevurl);
     const problem_data = { report_index: report_index, name: problem_names, index: problems_index };
     const problem_data_json = JSON.stringify(problem_data);
     if (!confirm('変更を保存しますか？')) {

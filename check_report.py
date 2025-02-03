@@ -3,6 +3,7 @@ import os
 from pdf2image import convert_from_path
 import re
 import json
+from PIL import Image
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -27,7 +28,10 @@ sorted_dirlist = sorted(dirlist, key=extract_number)
 def convert_pdf_to_images(pdf_path_list, savedir, img_name):
     try:
         if os.path.exists( os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page0.png")):
-            n = sum(1 for f in os.listdir(os.path.join(IMAGE_FOLDER, savedir)) if f.startswith(f"{img_name}_page"))
+            pattern = re.compile(rf"{img_name}_page(\d+)\.png")  # `(\d+)` は整数値を表す
+            n = sum(1 for f in os.listdir(os.path.join(IMAGE_FOLDER, savedir)) if pattern.match(f))
+            
+            # n = sum(1 for f in os.listdir(os.path.join(IMAGE_FOLDER, savedir)) if f.startswith(f"{img_name}_page") and not re.search(r'_rotated\d+\.png$', f))
             return [os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page{i}.png") for i in range(n)]
 
         page = 0
@@ -64,6 +68,17 @@ def load_problem_list(report):
         problems = load_problem_list(report)
     return problems
 
+def rotate_images(images, rotate):
+    images_new = []
+    for img_path in images:
+        rotated_img_path = img_path.replace(".png", f"_rotated{rotate}.png")
+        if not os.path.exists(rotated_img_path):
+            img = Image.open(img_path)
+            img = img.rotate(rotate*90, expand=True)
+            img.save(rotated_img_path)
+        images_new.append(rotated_img_path)
+    return images_new
+
 @app.route("/")
 def index():
     finished = [check_finished_report(report) for report in sorted_dirlist]
@@ -83,15 +98,18 @@ def view_pdf(report_index, author_index, page_num):
     question = request.args.get("question", default=0, type=int)
     auto_next = request.args.get("auto_next", default="true", type=str)
     auto_next_check = request.args.get("confirm_next", default="true", type=str)
+    rotate = request.args.get("rotate", default=0, type=int) % 4
     author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
     author = author_list[author_index]
     pdfs = os.listdir(os.path.join(basedir, sorted_dirlist[report_index], author))
     img_name = author
     pdf_path_list = [os.path.join(basedir, sorted_dirlist[report_index], author, pdf) for pdf in pdfs]
     images = convert_pdf_to_images(pdf_path_list, sorted_dirlist[report_index], img_name)
+    if rotate != 0:
+        images = rotate_images(images, rotate)
     marks = load_marks(sorted_dirlist[report_index], author)
     problems = load_problem_list(sorted_dirlist[report_index])
-    myurl = f"'/pdf/{report_index}/{author_index}/{page_num}?question={question}'"
+    myurl = f"'/pdf/{report_index}/{author_index}/{page_num}?question={question}&rotate={rotate}'"
 
     if page_num >= len(images):
         return "No more pages."
@@ -114,7 +132,8 @@ def view_pdf(report_index, author_index, page_num):
         problems_num=len(problems),
         myurl=myurl,
         auto_next=auto_next,
-        confirm_next=auto_next_check
+        confirm_next=auto_next_check,
+        rotate=rotate
     )
 
 @app.route("/edit_problems/<int:report_index>")
