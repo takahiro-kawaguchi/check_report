@@ -62,11 +62,13 @@
                 <div id="image-container" width="100%" height="auto">
                     <canvas id="canvas"></canvas>
                     <img src="/{{ image_path }}" alt="PDF Page" id="pdf-image">
+                    <div id="magnifier" class="magnifier"></div>
                 </div>
             </div>
             <div class="col-4">
                 <input type="checkbox" id="auto-next" class="form-check-input" onclick="toggleAutoNext()"><label class="form-check-label" for="auto-next">自動ページ送り</label>
                 <input type="checkbox" id="confirm-next" class="form-check-input" onclick="toggleConfirmNext()"><label class="form-check-label" for="form-check-input">ページ送り時確認</label>
+                <input type="checkbox" id="toggleMagnifier" class="form-check-input"><label class="form-check-label" for="form-check-input">拡大鏡を利用</label>
                 <h2>{{ report }}</h2>
                 <h3>{{ author }}</h3>
                 <div>
@@ -113,6 +115,7 @@
     </main>
 
     <script src={{url_for('static', filename='viewer.js')}}></script>
+    <script src={{url_for('static', filename='magnifier.js')}}></script>
     <script>
         currentQuestion = {{question}};
         getProblemLinks({{problems_num}});
