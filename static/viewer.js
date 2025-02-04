@@ -2,7 +2,7 @@ let currentMark = 'circle'; // デフォルトマーク
 let marks = [];
 let currentPage = 0;
 const markSize = 0.05;
-const big_ratio = 1;
+const big_ratio = 1.5;
 let currentQuestion = 0;
 let problemCount = 0;
 let auto_next = true;
@@ -68,17 +68,17 @@ function redrawCanvas() {
             }
             let x = mark.x;
             let y = mark.y;
-            if (rotate == 1){
+            if (rotate == 1) {
                 const x_ = y;
-                y = 1-x;
+                y = 1 - x;
                 x = x_;
             }
-            if (rotate == 2){
-                x = 1-x;
-                y = 1-y;
+            if (rotate == 2) {
+                x = 1 - x;
+                y = 1 - y;
             }
-            if (rotate == 3){
-                const x_ = 1-y;
+            if (rotate == 3) {
+                const x_ = 1 - y;
                 y = x;
                 x = x_;
             }
@@ -177,18 +177,18 @@ async function clicked_event(event, report, author, page_num) {
     const y = event.clientY - rect.top;
     let x_ratio = x / rect.width;
     let y_ratio = y / rect.height;
-    if (rotate == 1){
-        const x_ = 1-y_ratio;
+    if (rotate == 1) {
+        const x_ = 1 - y_ratio;
         y_ratio = x_ratio;
         x_ratio = x_;
     }
-    if (rotate == 2){
-        x_ratio = 1-x_ratio;
-        y_ratio = 1-y_ratio;
+    if (rotate == 2) {
+        x_ratio = 1 - x_ratio;
+        y_ratio = 1 - y_ratio;
     }
-    if (rotate == 3){
+    if (rotate == 3) {
         const x_ = y_ratio;
-        y_ratio = 1-x_ratio;
+        y_ratio = 1 - x_ratio;
         x_ratio = x_;
     }
 
@@ -307,7 +307,7 @@ function findNextProblem(transition = true) {
     }
 
     if (isAllMarked && transition && auto_next) {
-        if (!auto_next_check){
+        if (!auto_next_check) {
             const autoNext = document.getElementById("auto-next");
             auto_next = autoNext.checked;
             let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
@@ -332,7 +332,7 @@ function findNextProblem(transition = true) {
     }
 }
 
-function toggleAutoNext(){
+function toggleAutoNext() {
     const autoNext = document.getElementById("auto-next");
     auto_next = autoNext.checked;
     pageLinks.forEach(link => {
@@ -347,7 +347,7 @@ function toggleAutoNext(){
     prevreport.setAttribute("href", updateQueryParameter(prevreport.getAttribute("href"), 'auto_next', auto_next));
 }
 
-function toggleConfirmNext(){
+function toggleConfirmNext() {
     const autoNextcheck = document.getElementById("confirm-next");
     auto_next_check = autoNextcheck.checked;
     pageLinks.forEach(link => {
@@ -362,7 +362,7 @@ function toggleConfirmNext(){
     prevreport.setAttribute("href", updateQueryParameter(prevreport.getAttribute("href"), 'confirm_next', auto_next_check));
 }
 
-function updateCheckboxes(auto_next_, auto_next_check_){
+function updateCheckboxes(auto_next_, auto_next_check_) {
     pageLinks.forEach(link => {
         link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'auto_next', auto_next_));
         link.setAttribute("href", updateQueryParameter(link.getAttribute("href"), 'confirm_next', auto_next_check_));
@@ -386,7 +386,7 @@ function updateCheckboxes(auto_next_, auto_next_check_){
 }
 
 function updateQueryParameter(url, param, newValue) {
-    if (url=="#"){
+    if (url == "#") {
         return url;
     }
     let urlObj = new URL(url, window.location.origin);
@@ -394,7 +394,7 @@ function updateQueryParameter(url, param, newValue) {
     return urlObj.pathname + "?" + urlObj.searchParams.toString();
 }
 
-function rotate_image(i_rotate){
+function rotate_image(i_rotate) {
     rotate = (rotate + i_rotate) % 4;
     let url = location.href;
     url = updateQueryParameter(url, 'rotate', rotate);
@@ -402,4 +402,19 @@ function rotate_image(i_rotate){
     url = updateQueryParameter(url, 'auto_next', auto_next);
     url = updateQueryParameter(url, 'confirm_next', auto_next_check);
     location.replace(url);
+}
+
+function move_up(index) {
+    if (index > 0) {
+        [marks[index - 1], marks[index]] = [marks[index], marks[index - 1]];
+        redrawCanvas();
+        updateMarks();
     }
+}
+function move_down(index) {
+    if (index < problemCount - 1) {
+        [marks[index + 1], marks[index]] = [marks[index], marks[index + 1]];
+        redrawCanvas();
+        updateMarks();
+    }
+}

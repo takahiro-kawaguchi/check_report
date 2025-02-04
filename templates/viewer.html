@@ -70,6 +70,7 @@
                 <input type="checkbox" id="confirm-next" class="form-check-input" onclick="toggleConfirmNext()"><label class="form-check-label" for="form-check-input">ページ送り時確認</label>
                 <input type="checkbox" id="toggleMagnifier" class="form-check-input"><label class="form-check-label" for="form-check-input">拡大鏡を利用</label>
                 <h2>{{ report }}</h2>
+                <p>{{author_index+1}}/{{total_authors}}</p>
                 <h3>{{ author }}</h3>
                 <div>
                     <button id="btn-circle" class="btn btn-primary" onclick="setMark('circle')">〇</button>
@@ -83,6 +84,8 @@
                             <li><button class="btn btn-outline-primary" id="problem{{loop.index0}}" onclick="changeProblem({{loop.index0}})">選択</button>
                                 <span class="problem">{{p}}</span>
                                 <span id="mark{{loop.index0}}" class="result">　</span>
+                                <button class="btn btn-outline-secondary" onclick="move_up({{loop.index0}})">↑</button>
+                                <button class="btn btn-outline-secondary" onclick="move_down({{loop.index0}})">↓</button>
                                 <button class="btn btn-danger" onclick="removeMark({{loop.index0}})">削除</button>
                             </li>
                         </ul>
