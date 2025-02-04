@@ -97,7 +97,7 @@ function redrawCanvas() {
 
         setTimeout(() => {
             resolve();
-        }, 50);
+        }, 100);
     });
 }
 
@@ -118,7 +118,7 @@ function updateMarks() {
         });
         setTimeout(() => {
             resolve();
-        }, 10);
+        }, 100);
     });
 }
 

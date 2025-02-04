@@ -2,6 +2,7 @@ const problems_index = [];
 const problem_names = [];
 const problem_list = document.getElementById('problem-list');
 const problem_input = [];
+let version = 0;
 function initialize_problem_list(problems) {
     problems.forEach((problem, index) => {
         problems_index.push(index);

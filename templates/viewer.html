@@ -137,13 +137,13 @@
 
         loadJson('{{marks | tojson}}');
         updateMarks();
-        redrawCanvas({{page_num}});
+        redrawCanvas();
         //changeProblem(currentQuestion);
 //        window.onload = findNextProblem(false);
         window.addEventListener('load', findNextProblem(false));
         window.addEventListener('load', updateMarks());
         window.addEventListener('load', updateCheckboxes({{auto_next}}, {{confirm_next}}));
-        window.addEventListener('load', redrawCanvas({{page_num}}));
+        window.addEventListener('load', redrawCanvas());
     </script>
 
 </body>

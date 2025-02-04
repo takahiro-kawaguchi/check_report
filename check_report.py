@@ -14,6 +14,8 @@ basedir = "../レポート"
 MARKS_FILE = "marks.json"
 SAVE_DIR = "../save"
 
+version = 0
+
 os.makedirs(IMAGE_FOLDER, exist_ok=True)
 os.makedirs(SAVE_DIR, exist_ok=True)
 
@@ -109,7 +111,7 @@ def view_pdf(report_index, author_index, page_num):
         images = rotate_images(images, rotate)
     marks = load_marks(sorted_dirlist[report_index], author)
     problems = load_problem_list(sorted_dirlist[report_index])
-    myurl = f"'/pdf/{report_index}/{author_index}/{page_num}?question={question}&rotate={rotate}'"
+    myurl = f"'/pdf/{report_index}/{author_index}/{page_num}?question={question}&rotate={rotate}&v={version}'"
 
     if page_num >= len(images):
         return "No more pages."
@@ -162,6 +164,7 @@ def save_marks():
 
 @app.route("/save_problems", methods=["POST"])
 def save_problems():
+    global version
     data = request.get_json()
     report_index = data["report_index"]
     names = data["name"]
@@ -172,14 +175,15 @@ def save_problems():
     with open(path, "w") as f:
         for n in names:
             f.write(n+"\n")
-    reflesh_saved_data(report, index)
+    refresh_saved_data(report, index)
+    version = version + 1
     return {"status": "success"}
 
-def reflesh_saved_data(report, index):
+def refresh_saved_data(report, index):
     os.makedirs(os.path.join(SAVE_DIR, report), exist_ok=True)
     json_list = os.listdir(os.path.join(SAVE_DIR, report))
-    marks_new = [None for i in index]
     for j in json_list:
+        marks_new = [None for i in index]
         author = remove_json_suffix(j)
         marks = load_marks(report, author)
         for i, idx in enumerate(index):
