@@ -84,8 +84,8 @@
                             <li><button class="btn btn-outline-primary" id="problem{{loop.index0}}" onclick="changeProblem({{loop.index0}})">選択</button>
                                 <span class="problem">{{p}}</span>
                                 <span id="mark{{loop.index0}}" class="result">　</span>
-                                <button class="btn btn-outline-secondary" onclick="move_up({{loop.index0}})">↑</button>
-                                <button class="btn btn-outline-secondary" onclick="move_down({{loop.index0}})">↓</button>
+                                <button class="btn btn-outline-secondary" onclick="move_up({{loop.index0}}, '{{report}}', '{{author}}', {{page_num}})">↑</button>
+                                <button class="btn btn-outline-secondary" onclick="move_down({{loop.index0}}, '{{report}}', '{{author}}', {{page_num}})">↓</button>
                                 <button class="btn btn-danger" onclick="removeMark({{loop.index0}})">削除</button>
                             </li>
                         </ul>

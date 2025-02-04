@@ -404,17 +404,19 @@ function rotate_image(i_rotate) {
     location.replace(url);
 }
 
-function move_up(index) {
+function move_up(index, report, author, page_num) {
     if (index > 0) {
         [marks[index - 1], marks[index]] = [marks[index], marks[index - 1]];
         redrawCanvas();
         updateMarks();
+        saveMarks(report, author, page_num, marks);
     }
 }
-function move_down(index) {
+function move_down(index, report, author, page_num) {
     if (index < problemCount - 1) {
         [marks[index + 1], marks[index]] = [marks[index], marks[index + 1]];
         redrawCanvas();
         updateMarks();
+        saveMarks(report, author, page_num, marks);
     }
 }
