@@ -179,6 +179,22 @@ def save_problems():
     version = version + 1
     return {"status": "success"}
 
+@app.route("/next_unfinished_report/<int:report_index>/<int:author_index>")
+def next_unfinished_report(report_index, author_index):
+    auto_next = request.args.get("auto_next", default="true", type=str)
+    auto_next_check = request.args.get("confirm_next", default="true", type=str)
+    author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
+    for i in range(author_index+1, len(author_list)):
+        print(author_list[i])
+        if not check_finished(sorted_dirlist[report_index], author_list[i], len(load_problem_list(sorted_dirlist[report_index]))):
+            return redirect(url_for("view_pdf", report_index=report_index, author_index=i, page_num=0, auto_next=auto_next, confirm_next=auto_next_check))
+    for i in range(author_index):
+        print(author_list[i])
+        if not check_finished(sorted_dirlist[report_index], author_list[i], len(load_problem_list(sorted_dirlist[report_index]))):
+            return redirect(url_for("view_pdf", report_index=report_index, author_index=i, page_num=0, auto_next=auto_next, confirm_next=auto_next_check))
+    return redirect(url_for("view_author", report_index=report_index))
+
+
 def refresh_saved_data(report, index):
     os.makedirs(os.path.join(SAVE_DIR, report), exist_ok=True)
     json_list = os.listdir(os.path.join(SAVE_DIR, report))

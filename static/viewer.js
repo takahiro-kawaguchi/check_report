@@ -310,7 +310,10 @@ function findNextProblem(transition = true) {
         if (!auto_next_check) {
             const autoNext = document.getElementById("auto-next");
             auto_next = autoNext.checked;
-            let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
+            //let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
+            const unfinished = document.getElementById("next-unfinished-report-link");
+            let nexturl = unfinished.href;
+            nexturl = updateQueryParameter(nexturl, 'auto_next', auto_next);
             const autoNextcheck = document.getElementById("confirm-next");
             auto_next_check = autoNextcheck.checked;
             nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
@@ -321,7 +324,10 @@ function findNextProblem(transition = true) {
         if (resultConfirm) {
             const autoNext = document.getElementById("auto-next");
             auto_next = autoNext.checked;
-            let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
+            //let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
+            const unfinished = document.getElementById("next-unfinished-report-link");
+            let nexturl = unfinished.href;
+            nexturl = updateQueryParameter(nexturl, 'auto_next', auto_next);
             const autoNextcheck = document.getElementById("confirm-next");
             auto_next_check = autoNextcheck.checked;
             nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
@@ -345,6 +351,8 @@ function toggleAutoNext() {
     nextreport.setAttribute("href", updateQueryParameter(nextreport.getAttribute("href"), 'auto_next', auto_next));
     const prevreport = document.getElementById("prev-report-link");
     prevreport.setAttribute("href", updateQueryParameter(prevreport.getAttribute("href"), 'auto_next', auto_next));
+    const unfinished = document.getElementById("next-unfinished-report-link");
+    unfinished.setAttribute("href", updateQueryParameter(unfinished.getAttribute("href"), 'auto_next', auto_next));
 }
 
 function toggleConfirmNext() {
@@ -360,6 +368,8 @@ function toggleConfirmNext() {
     nextreport.setAttribute("href", updateQueryParameter(nextreport.getAttribute("href"), 'confirm_next', auto_next_check));
     const prevreport = document.getElementById("prev-report-link");
     prevreport.setAttribute("href", updateQueryParameter(prevreport.getAttribute("href"), 'confirm_next', auto_next_check));
+    const unfinished = document.getElementById("next-unfinished-report-link");
+    unfinished.setAttribute("href", updateQueryParameter(unfinished.getAttribute("href"), 'confirm_next', auto_next_check));
 }
 
 function updateCheckboxes(auto_next_, auto_next_check_) {
