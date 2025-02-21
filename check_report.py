@@ -4,6 +4,8 @@ from pdf2image import convert_from_path
 import re
 import json
 from PIL import Image
+from concurrent.futures import ThreadPoolExecutor
+
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -23,8 +25,13 @@ def extract_number(filename):
     match = re.search(r'第(\d+)回', filename)
     return int(match.group(1)) if match else float('inf')
 
+def sorted_key(filename):
+    is_extra = "遅れ" in filename
+    number = extract_number(filename)
+    return (is_extra, number)
+
 dirlist = os.listdir(basedir)
-sorted_dirlist = sorted(dirlist, key=extract_number)
+sorted_dirlist = sorted(dirlist, key=sorted_key)
 
 # PDFを画像に変換
 def convert_pdf_to_images(pdf_path_list, savedir, img_name):
@@ -212,6 +219,7 @@ def remove_json_suffix(filename):
     return re.sub(r'\.json$', '', filename)
 
 def check_finished(report, author, problems_num):
+    print(report, author)
     if problems_num == 0:
         return False
     marks = load_marks(report, author)
@@ -219,10 +227,20 @@ def check_finished(report, author, problems_num):
         return False
     return all(mark is not None for mark in marks)
 
-def check_finished_report(report):
+def check_finished_report_(report):
     problems_num = len(load_problem_list(report))
     author_list = os.listdir(os.path.join(basedir, report))
     return all(check_finished(report, author, problems_num) for author in author_list)
+
+def check_finished_report(report):
+    problems_num = len(load_problem_list(report))
+    author_list = os.listdir(os.path.join(basedir, report))
+
+    with ThreadPoolExecutor() as executor:
+        results = executor.map(lambda author: check_finished(report, author, problems_num), author_list)
+
+    return all(results)
+
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
