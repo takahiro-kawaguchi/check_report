@@ -19,6 +19,7 @@
         <div class="row">
             <div class="col-12">
                 <h1>課題一覧</h1>
+                [<a href="/edit_problems/common">共通問題編集</a>] [<a href="{{ url_for('reload_reports') }}">リスト再読み込み</a>]
                 <ul>
                     {% for d in dirlist %}
                     <li><a href="/author/{{loop.index0}}">{{d}}</a>
@@ -28,6 +29,8 @@
                         </span>
                         {% endif %}
                         [<a href="/edit_problems/{{loop.index0}}?prevpage='/'">問題編集</a>]
+                        [<a href="/edit_inputs/{{loop.index0}}?prevpage='/'">入力編集</a>]
+                        [<a href="/edit_sample/{{loop.index0}}?prevpage='/'">模範解答入力</a>]
                     </li>
                     {% endfor %}
                 </ul>

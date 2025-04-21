@@ -66,3 +66,28 @@ ul{
     background-repeat: no-repeat;
     z-index: 2;
 }
+
+.mycode{
+    font-size: 1rem; /*ソースコードフォントサイズ*/
+  }
+
+.result{
+    background-color: black;
+    font-size: 1rem;
+    display: block;
+    width: 100%;
+    white-space: pre-wrap;  /* 折り返したいなら */
+    box-sizing: border-box; /* paddingを幅に含める */
+    color: white;
+    text-align: left;
+    padding: 1em;
+
+    max-height: 300px;
+    overflow: auto;
+}
+
+.input-container {
+    display: flex;
+    align-items: flex-start; /* 上揃え */
+    margin-bottom: 1em;
+}

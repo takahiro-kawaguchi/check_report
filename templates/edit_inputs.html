@@ -35,19 +35,19 @@
         <div class="row">
             <div class="col-12">
 
-                <h1>Problem List</h1>
+                <h1>Input List</h1>
                 <h2>{{report}}</h2>
-                <ul id="problem-list">
+                <ul id="input-list">
                 </ul>
-                <button class="btn btn-primary save" onclick="save_problems({{report_index}}, {{prevpage}})">保存</button>
-                <button class="btn btn-danger" onclick="cancel_edit_problems({{prevpage}})">キャンセル</button>
+                <button class="btn btn-primary save" onclick="save_inputs({{report_index}}, {{prevpage}})">保存</button>
+                <button class="btn btn-danger" onclick="cancel_edit_inputs({{prevpage}})">キャンセル</button>
             </div>
 
         </div>
     </main>
-    <script src="{{ url_for('static', filename='edit_problems.js')}}"></script>
+    <script src="{{ url_for('static', filename='edit_inputs.js')}}"></script>
     <script>
-        initialize_problem_list({{problems | tojson | safe}});
+        initialize_input_list({{inputs | tojson | safe}});
     </script>
 </body>
 

@@ -35,19 +35,20 @@
         <div class="row">
             <div class="col-12">
 
-                <h1>Problem List</h1>
+                <h1>Input List</h1>
                 <h2>{{report}}</h2>
-                <ul id="problem-list">
-                </ul>
-                <button class="btn btn-primary save" onclick="save_problems({{report_index}}, {{prevpage}})">保存</button>
-                <button class="btn btn-danger" onclick="cancel_edit_problems({{prevpage}})">キャンセル</button>
+                <div>
+                <textarea class="editable w-100" id="sample_code" rows="30"></textarea>
+                </div>
+                <button class="btn btn-primary save" onclick="save_sample({{report_index}}, {{prevpage}})">保存</button>
+                <button class="btn btn-danger" onclick="cancel_edit({{prevpage}})">キャンセル</button>
             </div>
 
         </div>
     </main>
-    <script src="{{ url_for('static', filename='edit_problems.js')}}"></script>
+    <script src="{{ url_for('static', filename='edit_sample.js')}}"></script>
     <script>
-        initialize_problem_list({{problems | tojson | safe}});
+        initialize_sample({{code_sample | tojson | safe}});
     </script>
 </body>
 
