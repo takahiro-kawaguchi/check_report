@@ -91,7 +91,7 @@ def view_code(report_index, author_index, page_num):
     report = sorted_dirlist[report_index]
     code_sample = load_code_sample(report)
 
-    return render_template("processing.html",
+    return render_template("code_viewer.html",
                 code=code,
                 code_sample = code_sample,
                 report_index=report_index,
@@ -123,7 +123,7 @@ def generate_result(report_index, author_index, page_num):
         code = remove_GDB_comment(text)
     inputs = load_input_list(sorted_dirlist[report_index])
     result = run_c_code_safely(code, input_data_list = inputs)
-    html = render_template("code_viewer.html",
+    html = render_template("program_output.html",
                 result = result, code=code, sccess=result["success"],
                 report_index=report_index,
                 total_pages=len(codes), total_authors=len(author_list), author_index=author_index, page_num=page_num,
@@ -136,7 +136,7 @@ def generate_result_sample(report_index):
     code = load_code_sample(sorted_dirlist[report_index])
     inputs = load_input_list(sorted_dirlist[report_index])
     result = run_c_code_safely(code, input_data_list = inputs)
-    html = render_template("code_viewer.html",
+    html = render_template("program_output.html",
                 result = result, code=code, sccess=result["success"],
                 report_index=report_index,
                 total_pages=1, total_authors=1, author_index=0, page_num=0,

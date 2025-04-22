@@ -1,0 +1,31 @@
+                {% if not result.success %}
+                <div class="alert alert-danger">
+                    <strong>コンパイルエラー:</strong><br>
+                    <pre>{{ result.compile_error }}</pre>
+                </div>
+            {% else %}
+                <ul class="nav nav-tabs" id="resultTabs" role="tablist">
+                    {% for res in result.results %}
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link {% if loop.first %}active{% endif %}" id="tab-{{ loop.index }}" data-bs-toggle="tab" data-bs-target="#pane-{{ loop.index }}" type="button" role="tab">
+                                入力{{ loop.index }}
+                            </button>
+                        </li>
+                    {% endfor %}
+                </ul>
+        
+                <div class="tab-content mt-3">
+                    {% for res in result.results %}
+                        <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="pane-{{ loop.index }}" role="tabpanel">
+                            <h5>入力データ</h5>
+                            <pre><code class="result">{{ res.input }}</code></pre>
+                            <h5>出力</h5>
+                            <pre><code class="result">{{ res.output }}</code></pre>
+                            <h5>エラー出力</h5>
+                            <pre><code class="result">{{ res.error }}></code></pre>
+                            <h5>ステータス</h5>
+                            <p><span class="badge bg-{{ 'success' if res.status == 'ok' else 'danger' }}">{{ res.status }}</span></p>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
