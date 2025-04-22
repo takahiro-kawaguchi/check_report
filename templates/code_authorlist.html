@@ -35,17 +35,37 @@
                     {% for a in author_list %}
                     <li>
                         <a href="/code/{{report_index}}/{{loop.index0}}/0">{{a}}</a>
-                        <span class="check">
-                            {%if finished[loop.index0]%}
-                            <i class="bi bi-check-square-fill"></i>
-                            {%endif%}
-                        </span>
+                            <span id="status-{{loop.index0}}" class="status-text text-secondary">
+                                <i class="bi bi-arrow-repeat spin-icon"></i>
+                            </span>
                     </li>
                     {% endfor %}
                 </ul>
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const total = {{ author_list|length }};
+            for (let i = 0; i < total; i++) {
+                fetch(`/check_finished/{{report_index}}/${i}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const statusText = document.getElementById(`status-${i}`);
+                        if (data.finished) {
+                            statusText.innerHTML = '<i class="bi bi-check-square-fill"></i>';
+                            statusText.classList.remove('text-secondary');
+                            statusText.classList.add('text-success');
+                        } else {
+                            statusText.innerHTML = '';
+                            statusText.classList.remove('text-secondary');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+        });
+    </script>
 </body>
 
 </html>

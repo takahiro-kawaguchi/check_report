@@ -25,14 +25,17 @@ def extract_keys(task_name):
 
 dirlist = os.listdir(basedir)
 sorted_dirlist = sorted(dirlist, key=extract_keys)
+author_lists = [os.listdir(os.path.join(basedir, report)) for report in sorted_dirlist]
 
-def check_finished_report(report):
-    author_list = os.listdir(os.path.join(basedir, report))
+@app.route("/check_finished/<int:report_index>")
+def check_finished_report(report_index):
+    report = sorted_dirlist[report_index]
+    author_list = author_lists[report_index]
 
     with ThreadPoolExecutor() as executor:
         results = executor.map(lambda author: check_finished(report, author), author_list)
-
-    return all(results)
+    result = {"finished": all(results)}
+    return jsonify(result)
 
 
 def remove_GDB_comment(code):
@@ -45,29 +48,31 @@ def remove_GDB_comment(code):
 @app.route("/reload_reports")
 def reload_reports():
     global sorted_dirlist
+    global author_lists
     dirlist = os.listdir(basedir)
     sorted_dirlist = sorted(dirlist, key=extract_keys)
+    author_lists = [os.listdir(os.path.join(basedir, report)) for report in sorted_dirlist]
     return redirect(url_for("index"))
 
 
 @app.route("/")
 def index():
-    finished = [check_finished_report(report) for report in sorted_dirlist]
-    return render_template("code_dirlist.html", dirlist=sorted_dirlist, finished=finished)
+    return render_template("code_dirlist.html", dirlist=sorted_dirlist)
 
 
 @app.route("/author/<int:report_index>")
 def view_author(report_index):
-    author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
-    finished = [check_finished(sorted_dirlist[report_index], author) for author in author_list]
+    author_list = author_lists[report_index]
+    #finished = [check_finished(sorted_dirlist[report_index], author) for author in author_list]
     report = sorted_dirlist[report_index]
-    return render_template("code_authorlist.html", author_list=author_list, report_index=report_index, report=report, finished=finished)
+    return render_template("code_authorlist.html", author_list=author_list, report_index=report_index, report=report)
 
 @app.route("/code/<int:report_index>/<int:author_index>/<int:page_num>")
 def view_code(report_index, author_index, page_num):
     auto_next = request.args.get("auto_next", default="true", type=str)
     auto_next_check = request.args.get("confirm_next", default="true", type=str)
-    author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
+    # author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
+    author_list = author_lists[report_index]
     author = author_list[author_index]
     codes = [c for c in os.listdir(os.path.join(basedir, sorted_dirlist[report_index], author)) if c.endswith(".c")]
     if page_num >= len(codes):
@@ -104,7 +109,8 @@ def view_code(report_index, author_index, page_num):
 
 @app.route("/generate/<int:report_index>/<int:author_index>/<int:page_num>")
 def generate_result(report_index, author_index, page_num):
-    author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
+    # author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
+    author_list = author_lists[report_index]
     author = author_list[author_index]
     codes = [c for c in os.listdir(os.path.join(basedir, sorted_dirlist[report_index], author)) if c.endswith(".c")]
     if page_num >= len(codes):
@@ -143,7 +149,8 @@ def generate_result_sample(report_index):
 def next_unfinished_report(report_index, author_index):
     auto_next = request.args.get("auto_next", default="true", type=str)
     auto_next_check = request.args.get("confirm_next", default="true", type=str)
-    author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
+    # author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
+    author_list = author_lists[report_index]
     for i in range(author_index+1, len(author_list)):
         #print(author_list[i])
         if not check_finished(sorted_dirlist[report_index], author_list[i]):
@@ -315,9 +322,18 @@ def load_marks(report, author):
         return marks
     return []
 
+@app.route("/check_finished/<int:report_index>/<int:author_index>")
+def check_finished_index(report_index, author_index):
+    print(report_index, author_index)
+    # author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
+    author_list = author_lists[report_index]
+    author = author_list[author_index]
+    report = sorted_dirlist[report_index]
+    result = check_finished(report, author)
+    return jsonify({"finished": result})
+
 
 def check_finished(report, author):
-    #print(report, author)
     if not report.startswith("common"):
         if not check_finished("common_"+report, author):
             #print("common not finished")
