@@ -69,13 +69,19 @@
         <div class="row">
             <div class="col-8">
                 <h1>Code Viewer</h1>
+
+                {% if onlinetext %}
+                <div class="program-comment">{{ onlinetext }}</div>
+                {% endif %}
+
                 <pre><code class="language-c mycode">{{ code }}</code></pre>
                 <div id="result-area"><h2>処理中・・・</h2></div>
+ 
                 <h2>サンプルプログラム</h2>
                 <pre><code class="language-c mycode">{{ code_sample }}</code></pre>
                 <div id="result-sample"><h2>処理中・・・</h2></div>
             </div>
-            <div class="col-4">
+            <div class="col-4 sticky-sidebar">
                 <input type="checkbox" id="auto-next" class="form-check-input" onclick="toggleAutoNext()" value="auto-next"><label class="form-check-label" for="auto-next">自動ページ送り</label>
                 <input type="checkbox" id="confirm-next" class="form-check-input" onclick="toggleConfirmNext()" value="confirm-next"><label class="form-check-label" for="confirm-next">ページ送り時確認</label>
                 <h2>{{ report }}</h2>

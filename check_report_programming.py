@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from run_c_code_safely import run_c_code_safely
 import chardet
 import shutil
+import bs4
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -14,6 +15,7 @@ SERVER_URL = "http://127.0.0.1:5000"
 basedir = "../レポート"
 MARKS_FILE = "marks.json"
 SAVE_DIR = "../save"
+commentdir = "../コメント"
 
 version = 0
 def extract_keys(task_name):
@@ -90,7 +92,7 @@ def view_code(report_index, author_index, page_num):
     myurl = f"'/code/{report_index}/{author_index}/{page_num}?v={version}'"
     report = sorted_dirlist[report_index]
     code_sample = load_code_sample(report)
-
+    comment = get_comment(report_index, author_index)
     return render_template("code_viewer.html",
                 code=code,
                 code_sample = code_sample,
@@ -103,8 +105,31 @@ def view_code(report_index, author_index, page_num):
                 problem_num_common=len(problems_common),
                 auto_next=auto_next,
                 confirm_next=auto_next_check,
+                onlinetext = comment,
                 myurl=myurl,)
 
+
+def get_comment(report_index, author_index):
+    report = sorted_dirlist[report_index]
+    name = report.split("課題")[1]
+    split_name = name.split("-")
+    numbers = [int(n) for n in split_name if n.isdigit()]
+    report_number = numbers[0]
+    class_number = report.split("-")[0]
+    comment_list = os.listdir(commentdir)
+    for comment_file in comment_list:
+        if f"第{report_number}回" in comment_file and class_number in comment_file:
+            print(comment_file)
+            author = author_lists[report_index][author_index]
+            author_number = author.split(" ")[0]
+            flist = os.listdir(os.path.join(commentdir, comment_file))
+            for f in flist:
+                if author_number in f:
+                    source = os.path.join(commentdir, comment_file, f, "onlinetext.html")
+                    soup = bs4.BeautifulSoup(open(source), 'html.parser')
+                    print(soup)
+                    return soup.get_text()
+            break
 
 
 @app.route("/generate/<int:report_index>/<int:author_index>/<int:page_num>")
@@ -241,7 +266,6 @@ def save_problems():
 def save_inputs():
     global version
     data = request.get_json()
-    print(data)
     report_index = data["report_index"]
     names = data["name"]
     index = data["index"]
@@ -324,7 +348,6 @@ def load_marks(report, author):
 
 @app.route("/check_finished/<int:report_index>/<int:author_index>")
 def check_finished_index(report_index, author_index):
-    print(report_index, author_index)
     # author_list = os.listdir(os.path.join(basedir, sorted_dirlist[report_index]))
     author_list = author_lists[report_index]
     author = author_list[author_index]

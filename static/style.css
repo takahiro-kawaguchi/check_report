@@ -107,3 +107,18 @@ ul{
         transform: rotate(360deg);
     }
 }
+
+.program-comment{
+    color: #586e75;
+    background-color:  #eee8d5; 
+    padding: 1rem; 
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.sticky-sidebar {
+    position: sticky;
+    top: 80px; /* ヘッダーの高さに応じて調整 */
+    max-height: calc(100vh - 80px); /* ビューポートの高さからヘッダー分を引く */
+    overflow-y: auto;
+}
