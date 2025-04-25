@@ -221,6 +221,8 @@ def edit_sample(report_index):
 
 
 def load_problem_list(report):
+    if not report.startswith("common"):
+        report = "-".join(report.split("-")[1:-1])
     path = os.path.join(SAVE_DIR, report+".txt")
     if os.path.exists(path):
         with open(path, "r") as f:
@@ -232,6 +234,7 @@ def load_problem_list(report):
     return problems
 
 def load_input_list(report):
+    report = "-".join(report.split("-")[1:-1])
     path = os.path.join(SAVE_DIR, report+"_input.json")
     if os.path.exists(path):
         with open(path, "r") as f:
@@ -253,6 +256,7 @@ def save_problems():
         report = "common"
     else:
         report = sorted_dirlist[report_index]
+        report = "-".join(report.split("-")[1:-1])
     path = os.path.join(SAVE_DIR, report+".txt")
     with open(path, "w") as f:
         for n in names:
@@ -270,6 +274,7 @@ def save_inputs():
     names = data["name"]
     index = data["index"]
     report = sorted_dirlist[report_index]
+    report = "-".join(report.split("-")[1:-1])
     path = os.path.join(SAVE_DIR, report+"_input.json")
     with open(path, "w") as f:
         json.dump(names, f)
@@ -283,6 +288,7 @@ def save_sample():
     report_index = data["report_index"]
     code = data["code"]
     report = sorted_dirlist[report_index]
+    report = "-".join(report.split("-")[1:-1])
     path = os.path.join(SAVE_DIR, report+"_sample.c")
     with open(path, "w") as f:
         f.write(code)
@@ -376,6 +382,7 @@ def check_finished(report, author):
 
 
 def load_code_sample(report):
+    report = "-".join(report.split("-")[1:-1])
     path = os.path.join(SAVE_DIR, report+"_sample.c")
     if os.path.exists(path):
         with open(path, "r") as f:
