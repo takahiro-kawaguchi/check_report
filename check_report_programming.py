@@ -7,6 +7,7 @@ from run_c_code_safely import run_c_code_safely
 import chardet
 import shutil
 import bs4
+import zipfile
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -25,7 +26,29 @@ def extract_keys(task_name):
     numbers = numbers[:-1]
     return numbers
 
-dirlist = os.listdir(basedir)
+def unzip_if_needed_and_list_folders(target_dir):
+    # ディレクトリ内のファイルとフォルダを取得
+    for item in os.listdir(target_dir):
+        if item.lower().endswith('.zip'):
+            zip_path = os.path.join(target_dir, item)
+            folder_name = os.path.splitext(item)[0]
+            folder_path = os.path.join(target_dir, folder_name)
+
+            # 対応するフォルダがない場合は解凍
+            if not os.path.exists(folder_path):
+                with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                    zip_ref.extractall(folder_path)
+
+    # フォルダ一覧を取得（.zipではないディレクトリ）
+    folder_list = [
+        name for name in os.listdir(target_dir)
+        if os.path.isdir(os.path.join(target_dir, name))
+    ]
+    
+    return folder_list
+
+#dirlist = os.listdir(basedir)
+dirlist = unzip_if_needed_and_list_folders(basedir)
 sorted_dirlist = sorted(dirlist, key=extract_keys)
 author_lists = [os.listdir(os.path.join(basedir, report)) for report in sorted_dirlist]
 
@@ -51,7 +74,8 @@ def remove_GDB_comment(code):
 def reload_reports():
     global sorted_dirlist
     global author_lists
-    dirlist = os.listdir(basedir)
+    #dirlist = os.listdir(basedir)
+    dirlist = unzip_if_needed_and_list_folders(basedir)
     sorted_dirlist = sorted(dirlist, key=extract_keys)
     author_lists = [os.listdir(os.path.join(basedir, report)) for report in sorted_dirlist]
     return redirect(url_for("index"))
@@ -116,7 +140,8 @@ def get_comment(report_index, author_index):
     numbers = [int(n) for n in split_name if n.isdigit()]
     report_number = numbers[0]
     class_number = report.split("-")[0]
-    comment_list = os.listdir(commentdir)
+    comment_list = unzip_if_needed_and_list_folders(commentdir)
+    #comment_list = os.listdir(commentdir)
     for comment_file in comment_list:
         if f"第{report_number}回" in comment_file and class_number in comment_file:
             print(comment_file)
