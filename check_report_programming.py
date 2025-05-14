@@ -56,7 +56,7 @@ def unzip_if_needed_and_list_folders(target_dir):
 #dirlist = os.listdir(basedir)
 dirlist = unzip_if_needed_and_list_folders(basedir)
 sorted_dirlist = sorted(dirlist, key=extract_keys)
-author_lists = [os.listdir(os.path.join(basedir, report)) for report in sorted_dirlist]
+author_lists = [sorted(os.listdir(os.path.join(basedir, report))) for report in sorted_dirlist]
 
 scan_results = {}
 executor = ThreadPoolExecutor()
@@ -87,7 +87,7 @@ def reload_reports():
     #dirlist = os.listdir(basedir)
     dirlist = unzip_if_needed_and_list_folders(basedir)
     sorted_dirlist = sorted(dirlist, key=extract_keys)
-    author_lists = [os.listdir(os.path.join(basedir, report)) for report in sorted_dirlist]
+    author_lists = [sorted(os.listdir(os.path.join(basedir, report))) for report in sorted_dirlist]
     return redirect(url_for("index"))
 
 
@@ -117,7 +117,14 @@ def view_code(report_index, author_index, page_num):
     with open(os.path.join(basedir, sorted_dirlist[report_index], author, code), "rb") as f:
         raw = f.read()
         encoding = chardet.detect(raw)["encoding"] or "utf-8"
-        text = raw.decode(encoding)
+        try:
+            text = raw.decode(encoding)
+        except UnicodeDecodeError:
+            try:
+                text = raw.decode("shift_jis")
+            except UnicodeDecodeError:
+                # それでもダメならエラー処理（必要なら）
+                text = ""  # または raise や logging など
         code = remove_GDB_comment(text)
     marks = load_marks(sorted_dirlist[report_index], author)
     problems = load_problem_list(sorted_dirlist[report_index])
@@ -215,7 +222,13 @@ def generate_result(report_index, author_index, page_num):
     with open(os.path.join(basedir, sorted_dirlist[report_index], author, code), "rb") as f:
         raw = f.read()
         encoding = chardet.detect(raw)["encoding"] or "utf-8"
-        text = raw.decode(encoding)
+        try:
+            text = raw.decode(encoding)
+        except UnicodeDecodeError:
+            try:
+                text = raw.decode("shift_jis")
+            except UnicodeDecodeError:
+                pass
         code = remove_GDB_comment(text)
     inputs = load_input_list(sorted_dirlist[report_index])
     result = run_c_code_safely(add_printf_to_scanf(code), input_data_list = inputs)
@@ -479,7 +492,13 @@ def check_compile_error(report_index, author_index):
         with open(code_path, "rb") as f:
             raw = f.read()
             encoding = chardet.detect(raw)["encoding"] or "utf-8"
-            text = raw.decode(encoding)
+            try:
+                text = raw.decode(encoding)
+            except UnicodeDecodeError:
+                try:
+                    text = raw.decode("shift_jis")
+                except UnicodeDecodeError:
+                    pass
             clean_code = remove_GDB_comment(text)
             result = run_c_code_safely(add_printf_to_scanf(clean_code), execution=False)
             if not result["success"]:
