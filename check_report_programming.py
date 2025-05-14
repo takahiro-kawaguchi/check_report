@@ -144,7 +144,7 @@ def get_comment(report_index, author_index):
     #comment_list = os.listdir(commentdir)
     for comment_file in comment_list:
         if f"第{report_number}回" in comment_file and class_number in comment_file:
-            print(comment_file)
+            #print(comment_file)
             author = author_lists[report_index][author_index]
             author_number = author.split(" ")[0]
             flist = os.listdir(os.path.join(commentdir, comment_file))
@@ -152,9 +152,16 @@ def get_comment(report_index, author_index):
                 if author_number in f:
                     source = os.path.join(commentdir, comment_file, f, "onlinetext.html")
                     soup = bs4.BeautifulSoup(open(source), 'html.parser')
-                    print(soup)
+                    #print(soup)
                     return soup.get_text()
             break
+
+
+def add_printf_to_scanf(content):
+    pattern = r'(scanf\s*\(\s*"[^"]*"\s*,.*?\))(\s*;)'
+    replacement = r'\1\2\nprintf("\\n");\n'
+    content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+    return content
 
 
 @app.route("/generate/<int:report_index>/<int:author_index>/<int:page_num>")
@@ -172,7 +179,7 @@ def generate_result(report_index, author_index, page_num):
         text = raw.decode(encoding)
         code = remove_GDB_comment(text)
     inputs = load_input_list(sorted_dirlist[report_index])
-    result = run_c_code_safely(code, input_data_list = inputs)
+    result = run_c_code_safely(add_printf_to_scanf(code), input_data_list = inputs)
     html = render_template("program_output.html",
                 result = result, code=code, sccess=result["success"],
                 report_index=report_index,
