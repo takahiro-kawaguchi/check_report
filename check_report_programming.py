@@ -184,7 +184,7 @@ def generate_result(report_index, author_index, page_num):
                 result = result, code=code, sccess=result["success"],
                 report_index=report_index,
                 total_pages=len(codes), total_authors=len(author_list), author_index=author_index, page_num=page_num,
-                author=author, report=sorted_dirlist[report_index])
+                author=author, report=sorted_dirlist[report_index], name="report")
     return jsonify({'html': html})
 
 
@@ -197,7 +197,7 @@ def generate_result_sample(report_index):
                 result = result, code=code, sccess=result["success"],
                 report_index=report_index,
                 total_pages=1, total_authors=1, author_index=0, page_num=0,
-                author="sample", report=sorted_dirlist[report_index])
+                author="sample", report=sorted_dirlist[report_index], name="sample")
     return jsonify({'html': html})
 
 
