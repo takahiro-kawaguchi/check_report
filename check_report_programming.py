@@ -163,15 +163,32 @@ def get_comment(report_index, author_index):
 #     content = re.sub(pattern, replacement, content, flags=re.DOTALL)
 #     return content
 
+#def add_printf_to_scanf(content):
+#    # scanf の構文全体をキャプチャしつつ、書式文字列と変数名を取り出す
+#    pattern = r'(scanf\s*\(\s*"([^"]+)"\s*,\s*&(\w+)\s*\)\s*;)'
+#
+#    def replacer(match):
+#        original_scanf = match.group(1)  # 元の scanf 文全体
+#        fmt = match.group(2)             # 書式文字列
+#        var = match.group(3)             # 変数名
+#        printf_stmt = f'printf("{fmt}\\n", {var});'
+#        return f'{original_scanf}\n{printf_stmt}'
+#
+#    return re.sub(pattern, replacer, content)
+#
 def add_printf_to_scanf(content):
     # scanf の構文全体をキャプチャしつつ、書式文字列と変数名を取り出す
     pattern = r'(scanf\s*\(\s*"([^"]+)"\s*,\s*&(\w+)\s*\)\s*;)'
 
     def replacer(match):
         original_scanf = match.group(1)  # 元の scanf 文全体
-        fmt = match.group(2)             # 書式文字列
+        fmt = match.group(2)             # 書式文字列（例 "%lf", "%d"）
         var = match.group(3)             # 変数名
-        printf_stmt = f'printf("{fmt}\\n", {var});'
+
+        # 出力用にフォーマットを変換（%lfや%fを%gにする）
+        fmt_for_printf = re.sub(r'%l?f', '%g', fmt)
+
+        printf_stmt = f'printf("{fmt_for_printf}\\n", {var});'
         return f'{original_scanf}\n{printf_stmt}'
 
     return re.sub(pattern, replacer, content)
