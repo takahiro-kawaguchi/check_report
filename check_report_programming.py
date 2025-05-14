@@ -8,6 +8,8 @@ import chardet
 import shutil
 import bs4
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
+import uuid
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -51,6 +53,10 @@ def unzip_if_needed_and_list_folders(target_dir):
 dirlist = unzip_if_needed_and_list_folders(basedir)
 sorted_dirlist = sorted(dirlist, key=extract_keys)
 author_lists = [os.listdir(os.path.join(basedir, report)) for report in sorted_dirlist]
+
+scan_results = {}
+executor = ThreadPoolExecutor()
+
 
 @app.route("/check_finished/<int:report_index>")
 def check_finished_report(report_index):
@@ -453,6 +459,68 @@ def load_code_sample(report):
         shutil.copyfile("sample.c", path)
         code = load_code_sample(report)
     return code
+
+@app.route("/get_scan_result/<scan_id>")
+def get_scan_result(scan_id):
+    return jsonify(scan_results.get(scan_id, {"status": "not found"}))
+
+@app.route("/start_scan")
+def start_scan():
+    scan_id = str(uuid.uuid4())
+    scan_results[scan_id] = {
+    "status": "running",
+    "errors": [],
+    "log": [],
+    "total": 0,
+    "checked": 0,
+    }
+    
+    def task():
+        total = 0
+        for report_index, report in enumerate(sorted_dirlist):
+            author_list = author_lists[report_index]
+            for author in author_list:
+                code_dir = os.path.join(basedir, report, author)
+                total += len([c for c in os.listdir(code_dir) if c.endswith(".c")])
+        scan_results[scan_id]["total"] = total
+        scan_results[scan_id]["checked"] = 0
+
+        for report_index, report in enumerate(sorted_dirlist):
+            author_list = author_lists[report_index]
+            for author_index, author in enumerate(author_list):
+                logline = f"checking {report} / {author}"
+                scan_results[scan_id]["log"].append(logline)
+                code_dir = os.path.join(basedir, report, author)
+                codes = [c for c in os.listdir(code_dir) if c.endswith(".c")]
+                for page_num, code_file in enumerate(codes):
+                    code_path = os.path.join(code_dir, code_file)
+                    with open(code_path, "rb") as f:
+                        raw = f.read()
+                        encoding = chardet.detect(raw)["encoding"] or "utf-8"
+                        text = raw.decode(encoding)
+                        clean_code = remove_GDB_comment(text)
+                        inputs = load_input_list(report)
+                        result = run_c_code_safely(add_printf_to_scanf(clean_code), input_data_list=inputs)
+                        if not result["success"]:
+                            scan_results[scan_id]["errors"].append({
+                                "report_index": report_index,
+                                "author_index": author_index,
+                                "page_num": page_num,
+                                "author": author,
+                                "report": report,
+                                "filename": code_file,
+                                "error": result.get("error", "unknown error")
+                            })
+                    scan_results[scan_id]["checked"] += 1
+        scan_results[scan_id]["status"] = "done"
+
+    executor.submit(task)
+    return jsonify({"scan_id": scan_id})
+
+
+@app.route("/compile_errors_live")
+def compile_errors_live():
+    return render_template("compile_errors_live.html")
 
 
 if __name__ == "__main__":

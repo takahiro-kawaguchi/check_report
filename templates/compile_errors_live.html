@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>コンパイルエラーをスキャン中</title>
+</head>
+
+<body>
+    <h1>スキャン中...</h1>
+    <progress id="progress" value="0" max="1" style="width: 100%; height: 20px;"></progress>
+    <ul id="log"></ul>
+    <h2>コンパイルエラー</h2>
+    <ul id="errors"></ul>
+
+    <script>
+        let scan_id = null;
+
+        async function startScan() {
+            const res = await fetch("/start_scan");
+            const data = await res.json();
+            scan_id = data.scan_id;
+            pollResults();
+        }
+
+        async function pollResults() {
+            const res = await fetch(`/get_scan_result/${scan_id}`);
+            const data = await res.json();
+
+            const logEl = document.getElementById("log");
+            const progressEl = document.getElementById("progress");
+
+            if (data.status === "done") {
+                logEl.textContent = "完了しました";
+                progressEl.value = 1;
+            } else {
+                const logs = data.log || [];
+                logEl.textContent = logs.length > 0 ? logs[logs.length - 1] : "スキャン中...";
+
+                if (data.total && data.checked != null) {
+                    progressEl.value = data.checked / data.total;
+                }
+            }
+
+            const errorEl = document.getElementById("errors");
+            errorEl.innerHTML = "";
+            for (const err of data.errors || []) {
+                const li = document.createElement("li");
+                const a = document.createElement("a");
+                a.href = `/code/${err.report_index}/${err.author_index}/${err.page_num}`;
+                a.textContent = `${err.report} / ${err.author} / ${err.filename}`;
+                li.appendChild(a);
+                errorEl.appendChild(li);
+            }
+
+            if (data.status !== "done") {
+                setTimeout(pollResults, 1000);
+            }
+        }
+
+        startScan();
+    </script>
+</body>
+
+</html>
