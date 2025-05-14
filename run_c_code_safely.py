@@ -3,7 +3,7 @@ import subprocess
 import os
 import shutil
 
-def run_c_code_safely(code_str, input_data_list=[""], wait_time=1, compile_timeout=1e5):
+def run_c_code_safely(code_str, input_data_list=[""], wait_time=1, compile_timeout=1e5, execution=True):
     if len(input_data_list) == 0:
         input_data_list = [""]
     temp_dir = tempfile.mkdtemp()
@@ -31,6 +31,13 @@ def run_c_code_safely(code_str, input_data_list=[""], wait_time=1, compile_timeo
                 "success": False,
                 "results": [],
                 "compile_error": compile_result.stderr.decode()
+            }
+        
+        if not execution:
+            return {
+                "success": True,
+                "results": [],
+                "compile_error": None
             }
 
         # 3. テストケースごとの実行

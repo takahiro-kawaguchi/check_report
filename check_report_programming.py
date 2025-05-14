@@ -22,7 +22,7 @@ SAVE_DIR = "../save"
 commentdir = "../コメント"
 CACHE_FILE = "../save/compile_errors_cache.json"
 
-
+compile_errors_cache = {}
 
 version = 0
 def extract_keys(task_name):
@@ -202,7 +202,6 @@ def add_printf_to_scanf(content):
         return f'{original_scanf}\n{printf_stmt}'
 
     return re.sub(pattern, replacer, content)
-
 
 @app.route("/generate/<int:report_index>/<int:author_index>/<int:page_num>")
 def generate_result(report_index, author_index, page_num):
@@ -464,91 +463,39 @@ def load_code_sample(report):
         code = load_code_sample(report)
     return code
 
-@app.route("/get_scan_result/<scan_id>")
-def get_scan_result(scan_id):
-    return jsonify(scan_results.get(scan_id, {"status": "not found"}))
+@app.route("/check_compile_error/<int:report_index>/<int:author_index>")
+def check_compile_error(report_index, author_index):
+    report = sorted_dirlist[report_index]
+    author_list = author_lists[report_index]
+    author = author_list[author_index]
 
-@app.route("/start_scan")
-def start_scan():
-    scan_id = str(uuid.uuid4())
-    scan_results[scan_id] = {
-    "status": "running",
-    "errors": [],
-    "log": [],
-    "total": 0,
-    "checked": 0,
-    }
+    if (report, author) in compile_errors_cache:
+        return compile_errors_cache[(report, author)]
 
-    def task():
-        cache = load_compile_error_cache()
-        updated_cache = {}
-        for report_index, report in enumerate(sorted_dirlist):
-            author_list = author_lists[report_index]
-            for author_index, author in enumerate(author_list):
-                scan_results[scan_id]["log"].append(f"checking {report} / {author}")
-                code_dir = os.path.join(basedir, report, author)
-                codes = [c for c in os.listdir(code_dir) if c.endswith(".c")]
-                for page_num, code_file in enumerate(codes):
-                    code_path = os.path.join(code_dir, code_file)
-                    mtime = os.path.getmtime(code_path)
-
-                    cache_key = f"{report}|{author}|{code_file}"
-                    cached_entry = cache.get(cache_key)
-                    if cached_entry and cached_entry["mtime"] == mtime:
-                        if not cached_entry["success"]:
-                            scan_results[scan_id]["errors"].append(cached_entry["result"])
-                        updated_cache[cache_key] = cached_entry
-                        continue  # スキップしてキャッシュ使う
-
-                    # 再チェック
-                    with open(code_path, "rb") as f:
-                        raw = f.read()
-                        encoding = chardet.detect(raw)["encoding"] or "utf-8"
-                        text = raw.decode(encoding)
-                        clean_code = remove_GDB_comment(text)
-                        inputs = load_input_list(report)
-                        result = run_c_code_safely(add_printf_to_scanf(clean_code), input_data_list=inputs)
-
-                        entry = {
-                            "mtime": mtime,
-                            "success": result["success"],
-                            "result": {
-                                "report_index": report_index,
-                                "author_index": author_index,
-                                "page_num": page_num,
-                                "author": author,
-                                "report": report,
-                                "filename": code_file,
-                                "error": result.get("error", "unknown error")
-                            }
-                        }
-                        updated_cache[cache_key] = entry
-                        save_compile_error_cache(updated_cache)
-                        if not result["success"]:
-                            scan_results[scan_id]["errors"].append(entry["result"])
-
-        scan_results[scan_id]["status"] = "done"
-        save_compile_error_cache(updated_cache)
-
-    executor.submit(task)
-    return jsonify({"scan_id": scan_id})
+    code_dir = os.path.join(basedir, report, author)
+    codes = [c for c in os.listdir(code_dir) if c.endswith(".c")]
+    for i, code_file in enumerate(codes):
+        code_path = os.path.join(code_dir, code_file)
+        with open(code_path, "rb") as f:
+            raw = f.read()
+            encoding = chardet.detect(raw)["encoding"] or "utf-8"
+            text = raw.decode(encoding)
+            clean_code = remove_GDB_comment(text)
+            result = run_c_code_safely(add_printf_to_scanf(clean_code), execution=False)
+            if not result["success"]:
+                ret = jsonify({"report": report, "author": author, "filename": code_file, "code_num": i, "error": result["compile_error"], "success": False})
+                compile_errors_cache[(report, author)] = ret
+                return ret
+    ret = jsonify({"report": report, "author": author, "filename": "", "error": "", "success": True})
+    compile_errors_cache[(report, author)] = ret
+    return ret
 
 
 @app.route("/compile_errors_live")
 def compile_errors_live():
-    return render_template("compile_errors_live.html")
-
-def load_compile_error_cache():
-    if os.path.exists(CACHE_FILE):
-        with open(CACHE_FILE, "r") as f:
-            return json.load(f)
-    return {}
-
-def save_compile_error_cache(cache):
-    with open(CACHE_FILE, "w") as f:
-        json.dump(cache, f, indent=2)
-
-
+    num_reports = len(sorted_dirlist)
+    num_authors = [len(author_list) for author_list in author_lists]
+    return render_template("compile_errors_live.html", num_reports=num_reports, num_authors=num_authors)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
