@@ -157,11 +157,24 @@ def get_comment(report_index, author_index):
             break
 
 
+# def add_printf_to_scanf(content):
+#     pattern = r'(scanf\s*\(\s*"[^"]*"\s*,.*?\))(\s*;)'
+#     replacement = r'\1\2\nprintf("\\n");\n'
+#     content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+#     return content
+
 def add_printf_to_scanf(content):
-    pattern = r'(scanf\s*\(\s*"[^"]*"\s*,.*?\))(\s*;)'
-    replacement = r'\1\2\nprintf("\\n");\n'
-    content = re.sub(pattern, replacement, content, flags=re.DOTALL)
-    return content
+    # scanf の構文全体をキャプチャしつつ、書式文字列と変数名を取り出す
+    pattern = r'(scanf\s*\(\s*"([^"]+)"\s*,\s*&(\w+)\s*\)\s*;)'
+
+    def replacer(match):
+        original_scanf = match.group(1)  # 元の scanf 文全体
+        fmt = match.group(2)             # 書式文字列
+        var = match.group(3)             # 変数名
+        printf_stmt = f'printf("{fmt}\\n", {var});'
+        return f'{original_scanf}\n{printf_stmt}'
+
+    return re.sub(pattern, replacer, content)
 
 
 @app.route("/generate/<int:report_index>/<int:author_index>/<int:page_num>")
