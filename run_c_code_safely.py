@@ -3,6 +3,7 @@ import subprocess
 import os
 import shutil
 from threading import Thread
+import uuid
 
 def read_stream(stream, buffer):
     try:
@@ -15,12 +16,14 @@ def read_stream(stream, buffer):
         stream.close()
 
 def run_c_code_safely(code_str, input_data_list=[""], wait_time=1, compile_timeout=10, execution=True):
-    if len(input_data_list) == 0:
+    if not input_data_list:
         input_data_list = [""]
+
     temp_dir = tempfile.mkdtemp()
     results = []
+
     try:
-        # Cファイル保存
+        # Cソースコードを一時ファイルに書き込み
         code_file = os.path.join(temp_dir, "program.c")
         with open(code_file, "w") as f:
             f.write(code_str)
@@ -42,7 +45,7 @@ def run_c_code_safely(code_str, input_data_list=[""], wait_time=1, compile_timeo
             return {
                 "success": False,
                 "results": [],
-                "compile_error": compile_result.stderr.decode()
+                "compile_error": compile_result.stderr.decode(errors="replace")
             }
 
         if not execution:
@@ -52,13 +55,16 @@ def run_c_code_safely(code_str, input_data_list=[""], wait_time=1, compile_timeo
                 "compile_error": None
             }
 
+        # 実行＆採点処理
         for input_data in input_data_list:
+            container_name = f"c_runner_{uuid.uuid4().hex[:12]}"
             try:
                 run_cmd = [
                     "docker", "run", "-i", "--rm", "--init", "--network", "none",
+                    "--name", container_name,
                     "-v", f"{temp_dir}:/app", "c_runner_base",
                     "stdbuf", "-oL", "/app/program"
-                ]       
+                ]
 
                 proc = subprocess.Popen(
                     run_cmd,
@@ -67,15 +73,18 @@ def run_c_code_safely(code_str, input_data_list=[""], wait_time=1, compile_timeo
                     stderr=subprocess.PIPE
                 )
 
+                # 入力送信（必要なら改行追加）
                 if input_data:
                     if not input_data.endswith("\n"):
                         input_data += "\n"
                     proc.stdin.write(input_data.encode())
                     proc.stdin.flush()
+                # stdinは開いたまま（閉じない）
 
                 stdout_lines = []
                 stderr_lines = []
 
+                # 非同期に出力を読み取り
                 t_out = Thread(target=read_stream, args=(proc.stdout, stdout_lines))
                 t_err = Thread(target=read_stream, args=(proc.stderr, stderr_lines))
                 t_out.start()
@@ -86,6 +95,11 @@ def run_c_code_safely(code_str, input_data_list=[""], wait_time=1, compile_timeo
                     status = "ok" if proc.returncode == 0 else "runtime_error"
                 except subprocess.TimeoutExpired:
                     proc.kill()
+                    subprocess.run(
+                        ["docker", "rm", "-f", container_name],
+                        stdout=subprocess.DEVNULL,
+                        stderr=subprocess.DEVNULL
+                    )
                     status = "timeout"
 
                 t_out.join(timeout=1)
