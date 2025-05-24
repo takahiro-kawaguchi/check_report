@@ -428,12 +428,20 @@ def remove_json_suffix(filename):
     return re.sub(r'\.json$', '', filename)
 
 def load_marks(report, author):
-    name = author+".json"
+    name = author + ".json"
     path = os.path.join(SAVE_DIR, report, name)
+    
     if os.path.exists(path):
-        with open(path, "r") as f:
-            marks = json.load(f)
-        return marks
+        try:
+            with open(path, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            # JSONが壊れている場合、ファイルサイズを確認
+            if os.path.getsize(path) == 0:
+                os.remove(path)  # 空ファイルなら削除
+                return []  # 削除後は空リストとして扱う
+            else:
+                raise  # 壊れたJSONだが空でない場合はエラーを再スロー
     return []
 
 @app.route("/check_finished/<int:report_index>/<int:author_index>")
