@@ -193,22 +193,43 @@ def get_comment(report_index, author_index):
 #
 #    return re.sub(pattern, replacer, content)
 #
+# def add_printf_to_scanf(content):
+#     # scanf の構文全体をキャプチャしつつ、書式文字列と変数名を取り出す
+#     pattern = r'(scanf\s*\(\s*"([^"]+)"\s*,\s*&(\w+)\s*\)\s*;)'
+
+#     def replacer(match):
+#         original_scanf = match.group(1)  # 元の scanf 文全体
+#         fmt = match.group(2)             # 書式文字列（例 "%lf", "%d"）
+#         var = match.group(3)             # 変数名
+
+#         # 出力用にフォーマットを変換（%lfや%fを%gにする）
+#         fmt_for_printf = re.sub(r'%l?f', '%g', fmt)
+
+#         printf_stmt = f'printf("{fmt_for_printf}\\n", {var});'
+#         return f'{original_scanf}\n{printf_stmt}'
+
+#     return re.sub(pattern, replacer, content)
+
 def add_printf_to_scanf(content):
-    # scanf の構文全体をキャプチャしつつ、書式文字列と変数名を取り出す
-    pattern = r'(scanf\s*\(\s*"([^"]+)"\s*,\s*&(\w+)\s*\)\s*;)'
+    # scanfの書式: フォーマット文字列 + 引数リスト（&付きでも&なしでもOK、変数名や添え字も許容）
+    pattern = r'(scanf\s*\(\s*"([^"]+)"\s*,\s*((?:\s*&?\s*[\w\[\]().]+(?:\s*,\s*)?)+)\s*)\);'
 
     def replacer(match):
-        original_scanf = match.group(1)  # 元の scanf 文全体
-        fmt = match.group(2)             # 書式文字列（例 "%lf", "%d"）
-        var = match.group(3)             # 変数名
+        original_scanf = match.group(0)  # 元のscanf行全体
+        fmt = match.group(2)             # 書式文字列
+        args_str = match.group(3)        # 引数群
 
-        # 出力用にフォーマットを変換（%lfや%fを%gにする）
+        # 出力用の書式（%lfなどは%gへ）
         fmt_for_printf = re.sub(r'%l?f', '%g', fmt)
 
-        printf_stmt = f'printf("{fmt_for_printf}\\n", {var});'
+        # 各引数から「&」と空白を除いた変数式だけを取り出す
+        args = [re.sub(r'^\s*&\s*', '', v.strip()) for v in args_str.split(',') if v.strip()]
+
+        printf_stmt = f'printf("{fmt_for_printf}\\n", {", ".join(args)});'
         return f'{original_scanf}\n{printf_stmt}'
 
     return re.sub(pattern, replacer, content)
+
 
 @app.route("/generate/<int:report_index>/<int:author_index>/<int:page_num>")
 def generate_result(report_index, author_index, page_num):
