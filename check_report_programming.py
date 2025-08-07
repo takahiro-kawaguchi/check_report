@@ -168,7 +168,7 @@ def get_comment(report_index, author_index):
             for f in flist:
                 if author_number in f:
                     source = os.path.join(commentdir, comment_file, f, "onlinetext.html")
-                    soup = bs4.BeautifulSoup(open(source), 'html.parser')
+                    soup = bs4.BeautifulSoup(open(source, encoding="utf-8"), 'html.parser')
                     #print(soup)
                     return soup.get_text()
             break
@@ -330,10 +330,10 @@ def load_problem_list(report):
         report = "-".join(report.split("-")[1:-1])
     path = os.path.join(SAVE_DIR, report+".txt")
     if os.path.exists(path):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             problems = f.read().splitlines()
     else:
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             pass
         problems = load_problem_list(report)
     return problems

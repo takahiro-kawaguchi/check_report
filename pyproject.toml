@@ -1,0 +1,11 @@
+[project]
+name = "check-report"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "chardet>=5.2.0",
+    "flask>=3.1.1",
+]
