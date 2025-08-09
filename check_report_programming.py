@@ -252,7 +252,12 @@ def generate_result(report_index, author_index, page_num):
                 pass
         code = remove_GDB_comment(text)
     inputs = load_input_list(sorted_dirlist[report_index])
-    result = run_c_code_safely(add_printf_to_scanf(code), input_data_list = inputs)
+    files = load_file_list(sorted_dirlist[report_index])
+    expected_output_files = [f for f in files["output_name"]]
+    input_files = [{"filename": files["input_name"][i], "content": files["input_content"][i]} for i in range(len(files["input_name"]))]
+
+    result = run_c_code_safely(add_printf_to_scanf(code), input_data_list = inputs,
+                               expected_output_files=expected_output_files, extra_files = input_files)
     html = render_template("program_output.html",
                 result = result, code=code, sccess=result["success"],
                 report_index=report_index,
@@ -303,6 +308,21 @@ def edit_problems(report_index):
     problems = load_problem_list(report)
     return render_template("edit_problems.html", report=report, problems=problems, report_index=report_index, prevpage=prevpage)
 
+
+@app.route("/edit_files/<report_index>")
+def edit_files(report_index):
+    prevpage = request.args.get("prevpage", default="'/'", type=str)
+    if report_index == "common":
+        report = "common"
+        report_index = -1
+    else:
+        report_index = int(report_index)
+        report = sorted_dirlist[report_index]
+    files = load_file_list(report)
+    return render_template("edit_files.html", report=report, files=files, report_index=report_index, prevpage=prevpage)
+
+
+
 @app.route("/edit_inputs/<report_index>")
 def edit_inputs(report_index):
     prevpage = request.args.get("prevpage", default="'/'", type=str)
@@ -338,6 +358,19 @@ def load_problem_list(report):
         problems = load_problem_list(report)
     return problems
 
+def load_file_list(report):
+    if not report.startswith("common"):
+        report = "-".join(report.split("-")[1:-1])
+    path = os.path.join(SAVE_DIR, report+"_files.json")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            files = json.load(f)
+    else:
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump([], f)
+        files = load_file_list(report)
+    return files
+
 def load_input_list(report):
     report = "-".join(report.split("-")[1:-1])
     path = os.path.join(SAVE_DIR, report+"_input.json")
@@ -368,6 +401,20 @@ def save_problems():
             f.write(n+"\n")
     refresh_saved_data(report, index)
     version = version + 1
+    return {"status": "success"}
+
+@app.route("/save_files", methods=["POST"])
+def save_files():
+    data = request.get_json()
+    report_index = data["report_index"]
+    if report_index < 0:
+        report = "common"
+    else:
+        report = sorted_dirlist[report_index]
+        report = "-".join(report.split("-")[1:-1])
+    path = os.path.join(SAVE_DIR, report+"_files.json")
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(data, f)
     return {"status": "success"}
 
 

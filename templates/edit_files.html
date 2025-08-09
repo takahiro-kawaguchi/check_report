@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="/static/style.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+        crossorigin="anonymous"></script>
+    <title>File editor</title>
+</head>
+
+<body>
+    <header>
+        <nav class="fixed-top navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <div class="collapse navbar-collapse" id="navbarNav">
+
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link" href="/">課題一覧</a></li>
+                        {% if report_index >= 0%}
+                        <li class="nav-item"><a class="nav-link"
+                                href="{{ url_for('view_author', report_index=report_index) }}">提出一覧</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="row">
+            <div class="col-12">
+
+                <h1>File List</h1>
+                <h2>{{report}}</h2>
+                <h3>入力ファイル名</h3>
+                <ul id="input-file-list">
+                </ul>
+                <h3>出力ファイル名</h3>
+                <ul id="output-file-list">
+                </ul>
+                <button class="btn btn-primary save" onclick="save_files({{report_index}}, {{prevpage}})">保存</button>
+                <button class="btn btn-danger" onclick="cancel_edit_files({{prevpage}})">キャンセル</button>
+            </div>
+
+        </div>
+    </main>
+    <script src="{{ url_for('static', filename='edit_files.js')}}"></script>
+    <script>
+        initialize_file_list({{files | tojson | safe}});
+    </script>
+</body>
+
+</html>
