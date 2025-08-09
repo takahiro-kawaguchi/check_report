@@ -253,8 +253,13 @@ def generate_result(report_index, author_index, page_num):
         code = remove_GDB_comment(text)
     inputs = load_input_list(sorted_dirlist[report_index])
     files = load_file_list(sorted_dirlist[report_index])
-    expected_output_files = [f for f in files["output_name"]]
-    input_files = [{"filename": files["input_name"][i], "content": files["input_content"][i]} for i in range(len(files["input_name"]))]
+    print(files)
+    if isinstance(files, dict):
+        expected_output_files = [f for f in files["output_name"]]
+        input_files = [{"filename": files["input_name"][i], "content": files["input_content"][i]} for i in range(len(files["input_name"]))]
+    else:
+        expected_output_files = []
+        input_files = []
 
     result = run_c_code_safely(add_printf_to_scanf(code), input_data_list = inputs,
                                expected_output_files=expected_output_files, extra_files = input_files)
