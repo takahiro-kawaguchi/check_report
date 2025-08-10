@@ -5,7 +5,7 @@ import re
 import json
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
-
+import zipfile
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
