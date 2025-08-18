@@ -83,7 +83,7 @@ def load_marks(report, author):
     name = author+".json"
     path = os.path.join(SAVE_DIR, report, name)
     if os.path.exists(path):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             marks = json.load(f)
         return marks
     return []
@@ -91,10 +91,10 @@ def load_marks(report, author):
 def load_problem_list(report):
     path = os.path.join(SAVE_DIR, report+".txt")
     if os.path.exists(path):
-        with open(path, "r") as f:
+        with open(path, "r", encoding="utf-8") as f:
             problems = f.read().splitlines()
     else:
-        with open(path, "w") as f:
+        with open(path, "w", encoding="utf-8") as f:
             pass
         problems = load_problem_list(report)
     return problems
@@ -186,7 +186,7 @@ def save_marks():
     name = author+".json"
 
     # マークデータをファイルに保存
-    with open(os.path.join(SAVE_DIR, report, name), "w") as f:
+    with open(os.path.join(SAVE_DIR, report, name), "w", encoding="utf-8") as f:
         json.dump(marks, f)
 
     return {"status": "success"}
@@ -201,7 +201,7 @@ def save_problems():
 
     report = sorted_dirlist[report_index]
     path = os.path.join(SAVE_DIR, report+".txt")
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         for n in names:
             f.write(n+"\n")
     refresh_saved_data(report, index)
@@ -234,7 +234,7 @@ def refresh_saved_data(report, index):
         for i, idx in enumerate(index):
             if idx < len(marks) and idx >= 0:
                 marks_new[i] = marks[idx]
-        with open(os.path.join(SAVE_DIR, report, j), "w") as f:
+        with open(os.path.join(SAVE_DIR, report, j), "w", encoding="utf-8") as f:
            json.dump(marks_new, f)
 
 def remove_json_suffix(filename):
