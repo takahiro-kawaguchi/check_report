@@ -20,7 +20,7 @@
                 <h5>入力データ</h5>
                 <pre><code class="result_code">{{ res.input }}</code></pre>
                 
-                <h5>出力</h5>
+                <h5>出力<span class="badge bg-{{ 'success' if res.status == 'ok' else 'danger' }}">{{ res.status }}</span></h5>
                 <pre><code class="result_code">{{ res.output }}</code></pre>
                 
                 <h5>エラー出力</h5>
@@ -41,9 +41,9 @@
                         <pre><code class="result_code">{{ content }}</code></pre>
                     {% endfor %}
                 {% endif %}
-                
+<!--                 
                 <h5 class="mt-4">ステータス</h5>
-                <p><span class="badge bg-{{ 'success' if res.status == 'ok' else 'danger' }}">{{ res.status }}</span></p>
+                <p><span class="badge bg-{{ 'success' if res.status == 'ok' else 'danger' }}">{{ res.status }}</span></p> -->
             </div>
         {% endfor %}
     </div>
