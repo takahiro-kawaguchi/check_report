@@ -23,15 +23,19 @@ radios.forEach(radio => {
 
 const form = document.getElementById('problems-form');
 
-function submitForm(){
+
+
+
+
+function submitForm() {
     // フォームのデータを取得
     let values = [];
-    for(let i = 0; i<n_problems; i++){
+    for (let i = 0; i < n_problems; i++) {
         value = form.elements[`problem${i}`].value;
         values.push(value);
     }
     let values_common = [];
-    for(let i = 0; i<n_problems_common; i++){
+    for (let i = 0; i < n_problems_common; i++) {
         value = form.elements[`common${i}`].value;
         values_common.push(value);
     }
@@ -48,42 +52,42 @@ function submitForm(){
         },
         body: data_json
     })
-    .then(response => {
-        return response.json();
-    })
-    .then(data => {
-        if (data.message === 'finished'){
-            if (auto_next) {
-                if (!auto_next_check) {
-                    const autoNext = document.getElementById("auto-next");
-                    auto_next = autoNext.checked;
-                    //let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
-                    const unfinished = document.getElementById("next-unfinished-report-link");
-                    let nexturl = unfinished.href;
-                    nexturl = updateQueryParameter(nexturl, 'auto_next', auto_next);
-                    const autoNextcheck = document.getElementById("confirm-next");
-                    auto_next_check = autoNextcheck.checked;
-                    nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
-                    location.replace(nexturl);
-                    return;
-                }
-                const resultConfirm = confirm('全ての問題にマークがつけられました。次のレポートに移動しますか？');
-                if (resultConfirm) {
-                    const autoNext = document.getElementById("auto-next");
-                    auto_next = autoNext.checked;
-                    //let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
-                    const unfinished = document.getElementById("next-unfinished-report-link");
-                    let nexturl = unfinished.href;
-                    nexturl = updateQueryParameter(nexturl, 'auto_next', auto_next);
-                    const autoNextcheck = document.getElementById("confirm-next");
-                    auto_next_check = autoNextcheck.checked;
-                    nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
-                    location.replace(nexturl);
-                } else {
+        .then(response => {
+            return response.json();
+        })
+        .then(data => {
+            if (data.message === 'finished') {
+                if (auto_next) {
+                    if (!auto_next_check) {
+                        const autoNext = document.getElementById("auto-next");
+                        auto_next = autoNext.checked;
+                        //let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
+                        const unfinished = document.getElementById("next-unfinished-report-link");
+                        let nexturl = unfinished.href;
+                        nexturl = updateQueryParameter(nexturl, 'auto_next', auto_next);
+                        const autoNextcheck = document.getElementById("confirm-next");
+                        auto_next_check = autoNextcheck.checked;
+                        nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
+                        location.replace(nexturl);
+                        return;
+                    }
+                    const resultConfirm = confirm('全ての問題にマークがつけられました。次のレポートに移動しますか？');
+                    if (resultConfirm) {
+                        const autoNext = document.getElementById("auto-next");
+                        auto_next = autoNext.checked;
+                        //let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
+                        const unfinished = document.getElementById("next-unfinished-report-link");
+                        let nexturl = unfinished.href;
+                        nexturl = updateQueryParameter(nexturl, 'auto_next', auto_next);
+                        const autoNextcheck = document.getElementById("confirm-next");
+                        auto_next_check = autoNextcheck.checked;
+                        nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
+                        location.replace(nexturl);
+                    } else {
+                    }
                 }
             }
-        }
-    });
+        });
 
 
 }
@@ -205,8 +209,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const firstRadio = row.querySelector('input[type=radio]'); // まだ選択されていない場合は最初のラジオボタンにフォーカス
             if (firstRadio) firstRadio.focus();
         }
-            rows.forEach(row => row.classList.remove('table-active'));
-            row.classList.add('table-active');
+        rows.forEach(row => row.classList.remove('table-active'));
+        row.classList.add('table-active');
 
     };
 
@@ -244,6 +248,55 @@ document.addEventListener('DOMContentLoaded', () => {
             const name = rows[currentRowIndex].querySelector('input[type=radio]').name;
             resetOption(name);
         }
+
+        if (e.key === 'l' || e.key === 'h') {
+            const tabs = document.querySelectorAll('#reportTabs .nav-item');
+            const activeTab = document.querySelector('#reportTabs .nav-link.active');
+
+            // 現在アクティブなタブのインデックスを見つける
+            let activeIndex = -1;
+            for (let i = 0; i < tabs.length; i++) {
+                if (tabs[i].querySelector('.nav-link') === activeTab) {
+                    activeIndex = i;
+                    break;
+                }
+            }
+
+            let nextIndex = -1;
+
+            // 'l'キーが押された場合（次のタブへ）
+            if (e.key === 'l' && activeIndex < tabs.length - 1) {
+                nextIndex = activeIndex + 1;
+            }
+            // 'h'キーが押された場合（前のタブへ）
+            else if (e.key === 'h' && activeIndex > 0) {
+                nextIndex = activeIndex - 1;
+            }
+
+            // 遷移先が存在する場合のみ処理を実行
+            if (nextIndex !== -1) {
+                // 現在アクティブなタブを非アクティブにする
+                activeTab.classList.remove('active');
+                activeTab.setAttribute('aria-selected', 'false');
+
+                // 関連するタブペインも非表示にする
+                const activePaneId = activeTab.getAttribute('data-bs-target');
+                document.querySelector(activePaneId).classList.remove('active', 'show');
+
+                // 次にアクティブにするタブとそのペインを取得
+                const nextTab = tabs[nextIndex].querySelector('.nav-link');
+                const nextPaneId = nextTab.getAttribute('data-bs-target');
+                const nextPane = document.querySelector(nextPaneId);
+
+                // 次のタブをアクティブにする
+                nextTab.classList.add('active');
+                nextTab.setAttribute('aria-selected', 'true');
+
+                // 関連するタブペインを表示する
+                nextPane.classList.add('active', 'show');
+            }
+        }
+
     });
 
     // 最初の行にフォーカス
