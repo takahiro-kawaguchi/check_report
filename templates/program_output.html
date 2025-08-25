@@ -18,19 +18,19 @@
         {% for res in result.results %}
             <div class="tab-pane fade {% if loop.first %}show active{% endif %}" id="{{name}}pane-{{ loop.index }}" role="tabpanel">
                 <h5>入力データ</h5>
-                <pre><code class="result">{{ res.input }}</code></pre>
+                <pre><code class="result_code">{{ res.input }}</code></pre>
                 
                 <h5>出力</h5>
-                <pre><code class="result">{{ res.output }}</code></pre>
+                <pre><code class="result_code">{{ res.output }}</code></pre>
                 
                 <h5>エラー出力</h5>
-                <pre><code class="result">{{ res.error }}</code></pre>
+                <pre><code class="result_code">{{ res.error }}</code></pre>
 
                 {% if res.created_files %}
                     <h5 class="mt-4">生成されたファイル</h5>
                     {% for filename, content in res.created_files.items() %}
                         <h6>{{ filename }}</h6>
-                        <pre><code class="result">{{ content }}</code></pre>
+                        <pre><code class="result_code">{{ content }}</code></pre>
                     {% endfor %}
                 {% endif %}
 
@@ -38,7 +38,7 @@
                     <h5 class="mt-4">その他のファイル</h5>
                     {% for filename, content in res.other_files.items() %}
                         <h6>{{ filename }}</h6>
-                        <pre><code class="result">{{ content }}</code></pre>
+                        <pre><code class="result_code">{{ content }}</code></pre>
                     {% endfor %}
                 {% endif %}
                 

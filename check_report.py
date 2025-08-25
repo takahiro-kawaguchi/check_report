@@ -6,6 +6,8 @@ import json
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
 import zipfile
+from PyPDF2 import PdfReader
+
 
 app = Flask(__name__, static_folder="static", template_folder="templates")
 
@@ -55,38 +57,86 @@ def unzip_if_needed_and_list_folders(target_dir):
 dirlist = unzip_if_needed_and_list_folders(basedir)
 sorted_dirlist = sorted(dirlist, key=sorted_key)
 
-# PDFを画像に変換
-def convert_pdf_to_images(pdf_path_list, savedir, img_name):
-    try:
-        if os.path.exists( os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page0.png")):
-            pattern = re.compile(rf"{img_name}_page(\d+)\.png")  # `(\d+)` は整数値を表す
-            n = sum(1 for f in os.listdir(os.path.join(IMAGE_FOLDER, savedir)) if pattern.match(f))
-            
-            # n = sum(1 for f in os.listdir(os.path.join(IMAGE_FOLDER, savedir)) if f.startswith(f"{img_name}_page") and not re.search(r'_rotated\d+\.png$', f))
-            return [os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page{i}.png") for i in range(n)]
 
-        page = 0
+def get_total_pdf_pages(pdf_path_list):
+    """PDFファイルのリストを受け取り、合計ページ数を返す"""
+    total_pages = 0
+    for pdf_path in pdf_path_list:
+        try:
+            with open(pdf_path, 'rb') as f:
+                reader = PdfReader(f)
+                total_pages += len(reader.pages)
+        except Exception as e:
+            print(f"警告: {pdf_path} のページ数を読み込めませんでした。エラー: {e}")
+            # エラーが発生したPDFは0ページとして扱うか、例外を投げるかを選択
+            pass
+    return total_pages
+
+
+def convert_pdf_to_images(pdf_path_list, savedir, img_name):
+    """
+    PDFを画像に変換する。
+    期待されるページ数と既存の画像数が一致しない場合は、再生成する。
+    """
+    # 保存先ディレクトリのフルパス
+    save_full_dir = os.path.join(IMAGE_FOLDER, savedir)
+    os.makedirs(save_full_dir, exist_ok=True)
+
+    # 1. 期待される総ページ数を計算
+    total_expected_pages = get_total_pdf_pages(pdf_path_list)
+    if total_expected_pages == 0:
+        print("処理するべきPDFページがありません。")
+        return []
+
+    # 2. 既存の画像ファイル数をカウント
+    pattern = re.compile(rf"^{re.escape(img_name)}_page(\d+)\.png$")
+    existing_images = [f for f in os.listdir(save_full_dir) if pattern.match(f)]
+    num_existing_images = len(existing_images)
+
+    # 3. ページ数と画像数を比較
+    if total_expected_pages == num_existing_images:
+        print(f"画像は既に生成済みです ({num_existing_images}枚)。キャッシュを利用します。")
+        # ファイル名順にソートしてパスのリストを返す
+        existing_images.sort(key=lambda x: int(pattern.match(x).group(1)))
+        return [os.path.join(save_full_dir, f) for f in existing_images]
+
+    # 4. 不一致の場合、既存の画像を削除して再生成
+    print(f"ページ数/画像数に不一致を検出しました (期待: {total_expected_pages}, 既存: {num_existing_images})。画像を再生成します。")
+    for img_file in existing_images:
+        os.remove(os.path.join(save_full_dir, img_file))
+
+    # --- 以下、画像の生成処理 ---
+    try:
+        all_image_paths = []
+        page_counter = 0
         for pdf_path in pdf_path_list:
             images = convert_from_path(pdf_path)
-            image_paths = []
             for img in images:
-                os.makedirs(os.path.join(IMAGE_FOLDER, savedir), exist_ok=True)
-                img_path = os.path.join(IMAGE_FOLDER, savedir, f"{img_name}_page{page}.png")
-                page += 1
+                img_path = os.path.join(save_full_dir, f"{img_name}_page{page_counter}.png")
                 img.save(img_path, "PNG")
-                image_paths.append(img_path)
-    except:
-        image_paths = [os.path.join(IMAGE_FOLDER, "error.png"),]
-    return image_paths
+                all_image_paths.append(img_path)
+                page_counter += 1
+        
+        return all_image_paths
+
+    except Exception as e:
+        print(f"エラー: PDFから画像の変換中に問題が発生しました。エラー: {e}")
+        # エラー発生時は、専用のエラー画像パスを返す
+        return [os.path.join(IMAGE_FOLDER, "error.png")]
+
 
 def load_marks(report, author):
     name = author+".json"
     path = os.path.join(SAVE_DIR, report, name)
-    if os.path.exists(path):
-        with open(path, "r", encoding="utf-8") as f:
-            marks = json.load(f)
-        return marks
-    return []
+    try:
+        if os.path.exists(path):
+            with open(path, "r", encoding="utf-8") as f:
+                marks = json.load(f)
+            return marks
+        return []
+    except:
+        print(f"Error loading marks for {author} in report {report}. File may be corrupted or missing.")
+        return []
 
 def load_problem_list(report):
     path = os.path.join(SAVE_DIR, report+".txt")
@@ -222,6 +272,15 @@ def next_unfinished_report(report_index, author_index):
         if not check_finished(sorted_dirlist[report_index], author_list[i], len(load_problem_list(sorted_dirlist[report_index]))):
             return redirect(url_for("view_pdf", report_index=report_index, author_index=i, page_num=0, auto_next=auto_next, confirm_next=auto_next_check))
     return redirect(url_for("view_author", report_index=report_index))
+
+@app.route("/convert_all_pdfs/")
+def convert_all_pdfs():
+    for report_idx, report in enumerate(sorted_dirlist):
+        author_list = os.listdir(os.path.join(basedir, report))
+        for author_idx, author in enumerate(author_list):
+            print(report, author)
+            view_pdf(report_index=report_idx, author_index=author_idx, page_num=0)
+    return "All PDFs converted."
 
 
 def refresh_saved_data(report, index):

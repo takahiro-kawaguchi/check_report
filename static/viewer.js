@@ -307,7 +307,7 @@ function findNextProblem(transition = true) {
     }
 
     if (isAllMarked && transition && auto_next) {
-        if (!auto_next_check) {
+        if (!auto_next_check || true) {
             const autoNext = document.getElementById("auto-next");
             auto_next = autoNext.checked;
             //let nexturl = updateQueryParameter(nextReportLink.href, 'auto_next', auto_next);
@@ -317,6 +317,7 @@ function findNextProblem(transition = true) {
             const autoNextcheck = document.getElementById("confirm-next");
             auto_next_check = autoNextcheck.checked;
             nexturl = updateQueryParameter(nexturl, 'confirm_next', auto_next_check);
+            console.log(nexturl);
             location.replace(nexturl);
             return;
         }
@@ -430,3 +431,30 @@ function move_down(index, report, author, page_num) {
         saveMarks(report, author, page_num, marks);
     }
 }
+
+document.addEventListener('keydown', function(event) {
+            // event.key で押されたキーの名前を取得
+            switch (event.key) {
+                case 'a': // 'c', '1' から変更
+                    setMark('circle');
+                    break;
+
+                case 's': // 'x', '2' から変更
+                    setMark('cross');
+                    break;
+
+                case 'd': // 't', '3' から変更
+                    setMark('triangle');
+                    break;
+                
+                case 'f': // 'e', '4' から変更
+                    setMark('erace');
+                    break;
+                case 'ArrowRight': // 右矢印キー
+                    pageLinks[1].click(); // 次のページへ移動
+                    break;
+                case 'ArrowLeft': // 左矢印キー
+                    pageLinks[0].click(); // 前のページへ移動
+                    break;
+            }
+        });
